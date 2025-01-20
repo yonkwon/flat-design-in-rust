@@ -1,0 +1,11 @@
+C:\Users\Yon\Desktop\New folder\test2\target\debug\deps\libconsole-6f8acee8df3584d4.rmeta: C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\lib.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\common_term.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\kb.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\term.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\utils.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\windows_term\mod.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\ansi.rs
+
+C:\Users\Yon\Desktop\New folder\test2\target\debug\deps\console-6f8acee8df3584d4.d: C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\lib.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\common_term.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\kb.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\term.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\utils.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\windows_term\mod.rs C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\ansi.rs
+
+C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\lib.rs:
+C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\common_term.rs:
+C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\kb.rs:
+C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\term.rs:
+C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\utils.rs:
+C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\windows_term\mod.rs:
+C:\Users\Yon\.cargo\registry\src\index.crates.io-6f17d22bba15001f\console-0.15.10\src\ansi.rs:
