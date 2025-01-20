@@ -26,7 +26,7 @@ pub struct HDFWriter {
     pub para_l_turb: Dataset,
     pub para_v_turb_r: Dataset,
     pub para_v_turb_i: Dataset,
-    // pub r_perf_avg: Dataset,
+    pub r_perf_avg: Dataset,
     // pub r_perf_std: Dataset,
     // pub r_perf_nr_avg: Dataset,
     // pub r_perf_nr_std: Dataset,
@@ -138,6 +138,7 @@ impl HDFWriter {
         let para_l_turb = hdf5_file.new_dataset_builder().with_data(&[params::LENGTH_TURBULENCE]).create("para_l_turb").unwrap();
         let para_v_turb_r = hdf5_file.new_dataset_builder().with_data(&params::TURBULENCE_RATE).create("para_v_turb_r").unwrap();
         let para_v_turb_i = hdf5_file.new_dataset_builder().with_data(&params::TURBULENCE_INTERVAL).create("para_v_turb_i").unwrap();
+        let r_perf_avg = hdf5_file.new_dataset().shape(params::RESULT_SHAPE).create("r_perf_avg").unwrap();
         HDFWriter {
             hdf5_file,
             para_iteration,
@@ -162,6 +163,7 @@ impl HDFWriter {
             para_l_turb,
             para_v_turb_r,
             para_v_turb_i,
+            r_perf_avg,
         }
     }
 }
