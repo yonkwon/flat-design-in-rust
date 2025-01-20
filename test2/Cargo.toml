@@ -11,5 +11,6 @@ ndarray = "0.16.1"
 
 hdf5-metno = "0.9.4" # For some reason, hdf5 doesn't work
 hdf5-metno-sys = "0.10.1"
+hdf5-metno-src = "0.9.4"
 
 indicatif = {version = "0.17.9", features = ["rayon"]}
