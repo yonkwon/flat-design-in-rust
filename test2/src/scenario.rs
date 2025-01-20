@@ -19,7 +19,7 @@ pub struct Scenario {
     pub is_network_closure: bool,
     pub is_preferential_attachment: bool,
 
-    pub span: usize,              // Span of control
+    pub span: usize,            // Span of control
     pub enforcement: f64,       // E
 
     // New global variables
@@ -110,7 +110,7 @@ impl Scenario {
             iterator_dyad_index: vec![0; params::N_DYAD].into_iter().collect(),
             map_dyad2d_index:vec![[0; 2]; params::N_DYAD].into_iter().collect(),
         };
-        
+
         
         for i in 0..params::N {
             scenario.iterator_focal_index[i] = i;
@@ -209,8 +209,6 @@ impl Scenario {
 
     /// Equivalent to private void initializeNetwork().
     fn initialize_network(&mut self) {
-        // network, networkFormal, networkInformal, networkLimited all exist as 2D bool arrays
-
         // Re-initialize them:
         self.network = vec![vec![false; params::N]; params::N];
         self.network_formal = vec![vec![false; params::N]; params::N];
@@ -330,6 +328,7 @@ impl Scenario {
                     break 'outer;
                 }
             }
+            println!("{}", self.degree.iter().sum::<usize>());
         }
 
         // If Main.params::LIMIT_LEVEL is enabled
@@ -344,7 +343,12 @@ impl Scenario {
             }
         }
 
+        // println!("\n\ns{} {} <- {}", self.span, self.network.iter().flatten().map(|&x| x as usize).sum::<usize>(), format!("{:?}",self.network));
+        // println!("\n\nINFORMAL\ts{} {} <- {}", self.span, self.network_informal.iter().flatten().map(|&x| x as usize).sum::<usize>(), format!("{:?}",self.network_informal));
+
         self.na = network_analyzer::NetworkAnalyzer::new();
+
+        
     }
 
     /// Equivalent to private void initializeEntity().
@@ -382,36 +386,14 @@ impl Scenario {
         self.set_outcome();
     }
 
-    /// Equivalent to void stepForward(int numFormation, int numBreak).
-    pub fn step_forward_num_formation_break(&mut self, num_formation: usize, num_break: usize) {
-        if params::DO_POST_REWIRING {
-            if self.is_rewiring {
-                if !self.is_random_rewiring {
-                    self.do_rewiring(num_formation, num_break);
-                } else {
-                    self.do_random_rewiring(num_formation, num_break);
-                }
+    pub fn step_forward(&mut self){
+        if self.is_rewiring{
+            if self.is_random_rewiring{
+                self.do_random_rewiring(params::INFORMAL_REWIRING_NUM, params::INFORMAL_REWIRING_NUM);
+            }else{
+                self.do_rewiring(params::INFORMAL_REWIRING_NUM, params::INFORMAL_REWIRING_NUM);
             }
         }
-        self.step_forward();
-    }
-
-    /// Equivalent to void stepForward(int tieTurnover).
-    pub fn step_forward_tie_turnover(&mut self, tie_turnover: usize) {
-        if params::DO_POST_REWIRING {
-            if self.is_rewiring {
-                if !self.is_random_rewiring {
-                    self.do_rewiring(tie_turnover, tie_turnover);
-                } else {
-                    self.do_random_rewiring(tie_turnover, tie_turnover);
-                }
-            }
-        }
-        self.step_forward();
-    }
-
-    /// Equivalent to void stepForward().
-    pub fn step_forward(&mut self) {
         self.do_learning();
         self.set_outcome();
         if self.turnover_rate > 0.0 {
@@ -419,8 +401,6 @@ impl Scenario {
         }
     }
 
-    /// We remove the four instance variables from the class in Java,
-    /// but we keep this method logic intact (now they are local).
     pub fn set_outcome(&mut self) {
         self.performance_avg = 0.0;
         self.na.set_network_metrics();
@@ -437,7 +417,6 @@ impl Scenario {
         self.performance_avg /= params::M_N as f64;
     }
 
-    /// Equivalent to void setPreferenceScore().
     pub fn set_preference_score(&mut self) {
         self.preference_score = vec![vec![0.0; params::N]; params::N];
         self.preference_score_avg = vec![0.0; params::N];
@@ -449,7 +428,6 @@ impl Scenario {
         }
     }
 
-    /// Equivalent to void setPreferenceScoreRawNetworkClosure().
     fn set_preference_score_raw_network_closure(&mut self) {
         for &focal in self.iterator_focal_index.iter() {
             for target in focal..params::N {
@@ -482,7 +460,6 @@ impl Scenario {
         }
     }
 
-    /// Equivalent to void setPreferenceScoreRawPreferentialAttachment().
     fn set_preference_score_raw_preferential_attachment(&mut self) {
         for &focal in self.iterator_focal_index.iter() {
             for target in focal..params::N {
@@ -527,28 +504,25 @@ impl Scenario {
         preference_score / denom
     }
 
-    /// Equivalent to double getRewiringWeightPreferentialAttachment(int focal, int target).
     fn get_rewiring_weight_preferential_attachment(&self, focal: usize, target: usize) -> f64 {
         let df = self.degree[focal] as f64;
         let dt = self.degree[target] as f64;
         df.min(dt)
     }
 
-    /// Equivalent to void doRewiring(int numFormation, int numBreak).
-    fn do_rewiring(&mut self, num_formation: usize, num_break: usize) {
+    pub fn do_rewiring(&mut self, num_formation: usize, num_break: usize) {
         if self.is_random_rewiring {
             self.do_random_rewiring(num_formation, num_break);
         } else {
-            self.do_tie_break(num_break);
             self.do_tie_formation(num_formation);
+            self.do_tie_break(num_break);
         }
     }
 
-    /// Equivalent to void doTieBreak(int numBreak).
     fn do_tie_break(&mut self, mut num_break: usize) {
         while num_break > 0 {
             let mut probability = vec![0.0; params::N_DYAD];
-            let mut dyad2_cut_weight_max = f64::MIN_POSITIVE; // Java's Double.MIN_VALUE
+            let mut dyad2_cut_weight_max = f64::MIN;
             // Calculate rewiring weights
             for &d in self.iterator_dyad_index.iter() {
                 let focal = self.map_dyad2d_index[d][0];
@@ -569,6 +543,11 @@ impl Scenario {
                     probability_denominator += probability[d];
                 }
             }
+            
+            // println!("prob {}", format!("{:?}",probability));
+            // println!("SPAN {} LEFT {}", self.span, num_break); // <--- WHY IS THIS DECREASING?
+            // println!("denom {} == {}", probability_denominator, probability.iter().sum::<f64>()); // <--- gradually decreasing... as if degree is decreasing??
+            // println!("degre {}", self.degree_informal.iter().sum::<usize>()); // <--- WHY IS THIS DECREASING? ALSO, IT SHOULD START WITH 125 * 2 AND WE CHANGE 50
             // If no edges had probability, shuffle and break randomly
             if probability_denominator == 0.0 {
                 self.iterator_dyad_index.shuffle(&mut self.rng);
@@ -586,6 +565,17 @@ impl Scenario {
                     if probability_cum >= marker {
                         let focal = self.map_dyad2d_index[d][0];
                         let target = self.map_dyad2d_index[d][1];
+
+                        // if self.degree_informal[focal] == 0 {
+                        //     println!("\n\nwhat??\t{}", self.network_informal.iter().flatten().map(|&x| x as usize).sum::<usize>());
+                        //             // println!("\n\nINFORMAL\ts{} {} <- {}", self.span, self.network_informal.iter().flatten().map(|&x| x as usize).sum::<usize>(), format!("{:?}",self.network_informal));
+
+                        // }
+
+                        // if !self.network_informal[focal][target] {
+                        //     println!("WTFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\t{} div {}", probability_denominator, format!("{:?}",probability));
+                        // }
+
                         self.network[focal][target] = false;
                         self.network[target][focal] = false;
                         self.network_informal[focal][target] = false;
@@ -614,6 +604,8 @@ impl Scenario {
                 if !self.network[focal][target]
                     && focal != target
                     && !self.network_limited[focal][target]
+                    && self.degree_informal[focal] < params::INFORMAL_MAX_NUM
+                    && self.degree_informal[target] < params::INFORMAL_MAX_NUM
                 {
                     probability[d] = self.get_rewiring_weight(focal, target);
                     probability_denominator += probability[d];
@@ -793,7 +785,7 @@ impl Scenario {
     }
 
     /// Equivalent to void printCSV(String fileName).
-    pub fn print_csv(&self, file_name: &str) {
+    pub fn export_network_csv(&self, file_name: &str) {
         let out_file = match File::create(format!("{}.csv", file_name)) {
             Ok(f) => f,
             Err(e) => {

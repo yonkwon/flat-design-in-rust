@@ -3,6 +3,7 @@ use once_cell::sync::OnceCell;
 use std::sync::Mutex;
 
 pub static RUN_ID: &str = "DATT";
+pub static RUN_DESC: &str = "Standard";
 
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;

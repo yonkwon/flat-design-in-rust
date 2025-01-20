@@ -1,79 +1,93 @@
-use rayon::prelude::*; // For parallel iteration
-use crate::params;
+// For parallel iteration
+use rayon::prelude::*; 
 use crate::scenario::Scenario;
-use std::sync::Mutex;
+use crate::params;
+use indicatif::{ProgressBar, ProgressStyle};
 
-pub struct ExperimentManager;
+/// Manages the experiment, including running the experiment and processing results.
+/// Modify as needed based on your experiment design.
+pub struct ExperimentManager {
+}
 
 impl ExperimentManager {
+
     /// Runs the experiment.
     pub fn run_experiments() {
-        // Collect all combinations of parameters for the Scenario constructor
-        let combinations = Self::generate_combinations();
-
-        // Prepare a thread-safe results collector
-        let results = Mutex::new(Vec::new());
-
         // Iterate over each combination in parallel
-        combinations.into_par_iter().for_each(|(social_dynamics, span, enforcement, turbulence_rate, turnover_rate)| {
+        let total_steps = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() * params::ITERATION;
+        let pb = ProgressBar::new(total_steps as u64);
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({eta_precise})")
+                .expect("Failed to set progress bar template")
+                .progress_chars("#>-"),
+        );
+
+        params::PARAMS_INDEX_COMBINATIONS.get().unwrap().into_par_iter().for_each(|(
+            i_social_dynamics, 
+            i_span, 
+            i_enforcement, 
+            i_turbulence, 
+            i_turnover,
+        )| {
+            let turbulence_interval = params::TURBULENCE_INTERVAL[*i_turbulence];
             for _ in 0..params::ITERATION {
                 // Create a new Scenario with the given parameters
                 let mut scenario = Scenario::new(
-                    social_dynamics,
-                    span,
-                    enforcement,
-                    turbulence_rate,
-                    turnover_rate,
+                    *i_social_dynamics,
+                    params::SPAN[*i_span],
+                    params::ENFORCEMENT[*i_enforcement],
+                    params::TURBULENCE_RATE[*i_turbulence],
+                    params::TURNOVER_RATE[*i_turnover],
                 );
+                
+                let mut scenario_random_rewiring = scenario.get_clone();
+                scenario_random_rewiring.set_network_params(true, true);
 
-                // Run the scenario (this depends on your Scenario implementation)
-                scenario.step_forward();
+                let mut scenario_no_rewiring = scenario.get_clone();
+                scenario_no_rewiring.set_network_params(false, false);
 
-                // Collect results (modify as needed based on your data structure)
-                let result = (
-                    social_dynamics,
-                    span,
-                    enforcement,
-                    turbulence_rate,
-                    turnover_rate,
-                    scenario.performance_avg, // Example output
+                scenario.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Systematically formed
+                scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
+
+                for t in 0..params::TIME {
+                    scenario.step_forward();
+                    scenario_random_rewiring.step_forward();
+                    scenario_no_rewiring.step_forward();
+                    
+                    if t % turbulence_interval == 0 {
+                        scenario.do_turbulence();
+                        scenario_random_rewiring.do_turbulence();
+                        scenario_no_rewiring.do_turbulence();
+                    }
+
+                }
+
+                println!("social_dynamics: {}, span: {}, enforcement: {}, turbulence_rate: {}, turnover_rate: {}, performance_avg: {}",
+                    i_social_dynamics, 
+                    i_span, 
+                    i_enforcement, 
+                    i_turbulence, 
+                    i_turnover, 
+                    scenario.performance_avg
                 );
-
-                // Push the result into the shared results vector
-                results.lock().unwrap().push(result);
+                pb.inc(1); // Increment the progress bar
             }
         });
+        pb.finish_with_message("Done!");
 
-        // Access and process results (e.g., save to file or display)
-        let results = results.into_inner().unwrap();
-        Self::process_results(results);
     }
 
-    /// Generates all combinations of parameters.
-    fn generate_combinations() -> Vec<(usize, usize, f64, f64, f64)> {
-        let mut combinations = Vec::new();
-        for social_dynamics in 0..params::NUM_SOCIAL_DYNAMICS-1 {
-            for &span in &params::SPAN {
-                for &enforcement in &params::ENFORCEMENT {
-                    for &turbulence_rate in &params::TURBULENCE_RATE {
-                        for &turnover_rate in &params::TURNOVER_RATE {
-                            combinations.push((social_dynamics, span, enforcement, turbulence_rate, turnover_rate));
-                        }
-                    }
-                }
-            }
-        }
-        combinations
-    }
-
-    /// Processes results, e.g., saves to a CSV file or prints to console.
-    fn process_results(results: Vec<(usize, usize, f64, f64, f64, f64)>) {
-        // Example: Print results to console
-        for (social_dynamics, span, enforcement, turbulence_rate, turnover_rate, performance_avg) in results {
-            println!(
-                "social_dynamics: {}, span: {}, enforcement: {}, turbulence_rate: {}, turnover_rate: {}, performance_avg: {}",
-                social_dynamics, span, enforcement, turbulence_rate, turnover_rate, performance_avg
-            );
-        }
-    }
+    // /// Processes results, e.g., saves to a CSV file or prints to console.
+    // fn process_results(scenario: Scenario, indices: (usize, usize, usize, usize, usize)) {
+    //     let (i_social_dynamics, i_span, i_enforcement, i_turbulence, i_turnover) = indices;
+    //     hdf5_manager::write_results(scenario, i_social_dynamics, i_span, i_enforcement, i_turbulence, i_turnover);
+    
+    //     for (social_dynamics, span, enforcement, turbulence_rate, turnover_rate, performance_avg) in results {
+    //         println!(
+    //             "social_dynamics: {}, span: {}, enforcement: {}, turbulence_rate: {}, turnover_rate: {}, performance_avg: {}",
+    //             social_dynamics, span, enforcement, turbulence_rate, turnover_rate, performance_avg
+    //         );
+    //     }
+    // }
 }

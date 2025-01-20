@@ -1,18 +1,18 @@
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::env;
 use once_cell::sync::OnceCell;
-use std::sync::Mutex;
 
 pub static RUN_ID: &str = "DATT";
+pub static RUN_DESC: &str = "Standard";
 
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
+pub static ITERATION: usize = 10;
 pub static LINK_LEVEL: bool = false;
-pub static P_ADDITION: f64 = 0.0;
-pub static DO_POST_REWIRING: bool = true;
 pub static LIMIT_LEVEL: bool = false;
+pub static P_ADDITION: f64 = 0.0;
 
-pub static ITERATION: usize = 10_000;
 pub static TIME: usize = 501;
 
 pub static INFORMAL_MAX_NUM: usize = 5;
@@ -26,7 +26,8 @@ pub static M_IN_BUNDLE: usize = 5;
 pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 pub static LENGTH_SPAN: usize = SPAN.len();
 
-pub static ENFORCEMENT: [f64; 4] = [0.0, 0.5, 0.8, 1.0];
+// pub static ENFORCEMENT: [f64; 4] = [0.0, 0.5, 0.8, 1.0];
+pub static ENFORCEMENT: [f64; 1] = [1.0];
 pub static LENGTH_ENFORCEMENT: usize = ENFORCEMENT.len();
 
 pub static TURBULENCE_RATE: [f64; 1] = [0.0];
@@ -53,7 +54,7 @@ pub static NUM_ADDITION: usize = (N_DYAD as f64 * P_ADDITION) as usize;
 
 pub static CLOSENESS_CENTRALIZATION_DENOMINATOR: f64 = (N as f64 - 1.0) * (N as f64- 2.0)  / (2.0 * N as f64 - 3.0);
 
-pub static RESULT_KEY_VALUE: [usize; 6] = [
+pub static RESULT_SHAPE: [usize; 6] = [
     NUM_SOCIAL_DYNAMICS,
     LENGTH_SPAN as usize,
     LENGTH_ENFORCEMENT as usize,
@@ -62,12 +63,86 @@ pub static RESULT_KEY_VALUE: [usize; 6] = [
     TIME,
 ];
 
-pub static FILENAME: OnceCell<Mutex<Option<String>>> = OnceCell::new();
-pub static PATH_CSV: OnceCell<Mutex<Option<String>>> = OnceCell::new();
-
+pub static PARAMS_INDEX_COMBINATIONS: OnceCell<Vec<(usize, usize, usize, usize, usize)>> = OnceCell::new();
+pub static PARAMS_INDEX_COMBINATIONS_WITH_TIME: OnceCell<Vec<(usize, usize, usize, usize, usize, usize)>> = OnceCell::new();
+pub static PARAM_STRING: OnceCell<String> = OnceCell::new();
+pub static FILE_NAME: OnceCell<String> = OnceCell::new();
+pub static FILE_PATH: OnceCell<String> = OnceCell::new();
 pub static TIC: OnceCell<u128> = OnceCell::new();
-pub fn initialize_globals() {
-    TIC.set(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis()).unwrap();
-    FILENAME.set(Mutex::new(None)).unwrap();
-    PATH_CSV.set(Mutex::new(None)).unwrap();
+
+pub fn initialize_once_cells() {
+    // PARAMS_INDEX_COMBINATIONS
+    //     .set(Vec::new())
+    //     .expect("Failed to initialize PARAMS_INDEX_COMBINATIONS");
+    // PARAMS_INDEX_COMBINATIONS_WITH_TIME
+    //     .set(Vec::new())
+    //     .expect("Failed to initialize PARAMS_INDEX_COMBINATIONS_WITH_TIME");
+
+    let mut combinations = Vec::new();
+    let mut combinations_with_time = Vec::new();
+
+    for i_social_dynamics in 0..NUM_SOCIAL_DYNAMICS {
+        for i_span in 0..LENGTH_SPAN {
+            for i_enforcement in 0..LENGTH_ENFORCEMENT {
+                for i_turbulence in 0..LENGTH_TURBULENCE {
+                    for i_turnover in 0..LENGTH_TURNOVER {
+                        combinations.push((
+                            i_social_dynamics,
+                            i_span,
+                            i_enforcement,
+                            i_turbulence,
+                            i_turnover,
+                        ));
+                        for t in 0..TIME {
+                            combinations_with_time.push((
+                                i_social_dynamics,
+                                i_span,
+                                i_enforcement,
+                                i_turbulence,
+                                i_turnover,
+                                t,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    PARAMS_INDEX_COMBINATIONS.set(combinations).unwrap();
+    PARAMS_INDEX_COMBINATIONS_WITH_TIME.set(combinations_with_time).unwrap();
+
+    let param_string = format!(
+        "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_PTurb{}_ITurb{}_PTurn{}_PLrn{}",
+        ITERATION,
+        TIME,
+        if LINK_LEVEL { "1" } else { "0" },
+        if LIMIT_LEVEL { "1" } else { "0" },
+        P_ADDITION,
+        INFORMAL_MAX_NUM,
+        INFORMAL_INITIAL_PROP,
+        INFORMAL_REWIRING_PROP,
+        N,
+        M_IN_BUNDLE,
+        M_OF_BUNDLE,
+        SPAN.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        ENFORCEMENT.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        TURBULENCE_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        TURBULENCE_INTERVAL.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        TURNOVER_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        P_LEARNING
+    );
+
+    PARAM_STRING.set(param_string).unwrap();
+
+    FILE_NAME.set(format!("{}_{}", RUN_ID, PARAM_STRING.get().unwrap())).unwrap();
+
+    FILE_PATH.set(env::current_dir().unwrap().to_str().unwrap().to_string()).unwrap();
+
+    TIC.set(
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis(),
+    ).unwrap();
 }
