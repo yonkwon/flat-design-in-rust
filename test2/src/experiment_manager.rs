@@ -199,7 +199,7 @@ impl ExperimentManager {
                 .progress_chars("#>-"),
         );
         println!(
-            "[1/3] Running Experiments for {} combinations with {} iterations each",
+            "Initiated: Running Experiments for {} combinations with {} iterations each",
             length_combination,
             params::ITERATION
         );
@@ -469,15 +469,19 @@ impl ExperimentManager {
 
     pub fn sample_network_csv(&self){
                 // Iterate over each combination in parallel
-                let total_steps = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len();
-                let pb = ProgressBar::new(total_steps as u64);
+                let length_combination = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len();
+                let pb = ProgressBar::new(length_combination as u64);
                 pb.set_style(
                     ProgressStyle::default_bar()
                         .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({eta_precise})")
                         .expect("Failed to set progress bar template")
                         .progress_chars("#>-"),
                 );
-        
+                println!(
+                    "Initiated: Sampling Network in *.csv for {} combinations",
+                    length_combination
+                );
+                
                 params::PARAMS_INDEX_COMBINATIONS.get().unwrap().into_par_iter().for_each(|(
                     i_social_dynamics, 
                     i_span, 
