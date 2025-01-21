@@ -17,7 +17,7 @@ pub static P_ADDITION: f64 = 0.0;
 
 pub static TIME: usize = 751;
 
-pub static INFORMAL_MAX_NUM: usize = 5;
+pub static INFORMAL_MAX_NUM: isize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
 pub static INFORMAL_REWIRING_PROP: f64 = 0.1;
 
@@ -50,7 +50,7 @@ pub static M_N_DYAD: f64 = (M * N_DYAD) as f64;
 
 pub static NUM_SOCIAL_DYNAMICS: usize = 2;
 
-pub static INFORMAL_INITIAL_NUM: usize = ((INFORMAL_MAX_NUM * N) as f64 / 2.0 * INFORMAL_INITIAL_PROP) as usize;
+pub static INFORMAL_INITIAL_NUM: usize = (INFORMAL_MAX_NUM as f64 * N as f64 / 2.0 * INFORMAL_INITIAL_PROP) as usize;
 pub static INFORMAL_REWIRING_NUM: usize = (INFORMAL_INITIAL_NUM as f64 * INFORMAL_REWIRING_PROP) as usize;
 pub static NUM_ADDITION: usize = (N_DYAD as f64 * P_ADDITION) as usize;
 

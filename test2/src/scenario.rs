@@ -334,7 +334,6 @@ impl Scenario {
                     break 'outer;
                 }
             }
-            println!("{}", self.degree.iter().sum::<usize>());
         }
 
         // If Main.params::LIMIT_LEVEL is enabled
