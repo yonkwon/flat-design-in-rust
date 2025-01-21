@@ -1,6 +1,6 @@
 // For parallel iteration
 use rayon::prelude::*; 
-use crate::{hdf5_manager, scenario::Scenario};
+use crate::scenario::Scenario;
 use crate::params;
 use indicatif::{ProgressBar, ProgressStyle};
 use ndarray::{ArrayD, IxDyn};
@@ -99,8 +99,7 @@ pub struct ExperimentManager {
 impl ExperimentManager {
 
     pub fn new() -> Self{
-        let shape = IxDyn(&params::RESULT_SHAPE);
-        let shape_clone = shape.clone();
+        let shape: ndarray::Dim<ndarray::IxDynImpl> = IxDyn(&params::RESULT_SHAPE);
         ExperimentManager {
             r_perf_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
             r_perf_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),

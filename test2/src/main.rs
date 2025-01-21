@@ -13,6 +13,6 @@ fn main() {
     experiment_manager.run_experiments();
     let toc = std::time::Instant::now().elapsed().as_secs();
 
-    let mut hdf5_manager = hdf5_manager::HDF5Manager::new(experiment_manager, toc-tic);
+    let hdf5_manager = hdf5_manager::HDF5Manager::new(experiment_manager, toc-tic);
     hdf5_manager.write_to_file();
 }

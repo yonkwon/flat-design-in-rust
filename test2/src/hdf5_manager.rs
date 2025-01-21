@@ -1,7 +1,6 @@
 use hdf5_metno::File;
 use hdf5_metno::dataset::Dataset;
-use ndarray::Shape;
-use crate::{experiment_manager::{self, ExperimentManager}, params};
+use crate::{experiment_manager::ExperimentManager, params};
 
 pub struct HDF5Manager {
     pub hdf5_file: File,
