@@ -2,7 +2,7 @@
 use rayon::prelude::*; 
 use crate::scenario::Scenario;
 use crate::params;
-use indicatif::{style, ProgressBar, ProgressStyle};
+use indicatif::{ProgressBar, ProgressStyle};
 use ndarray::{ArrayD, IxDyn};
 use std::sync::{Arc, Mutex};
 
