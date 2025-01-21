@@ -2,6 +2,8 @@ use std::env;
 use once_cell::sync::OnceCell;
 use once_cell::sync::Lazy;
 
+pub static PRINT_NETWORK_CSV: bool = true;
+
 pub static RUN_ID: &str = "DATT";
 pub static RUN_DESC: &str = "Standard";
 
