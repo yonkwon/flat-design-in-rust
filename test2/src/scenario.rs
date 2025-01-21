@@ -830,14 +830,14 @@ impl Scenario {
 
     /// doTurnover(): each individual leaves with probability turnoverRate; replaced by a new random one.
     pub fn do_turnover(&mut self) {
-        for i in 0..params::N {
+        for n in 0..params::N {
             if self.rng.gen::<f64>() < self.turnover_rate {
                 // The individual i leaves; fill with new random beliefs
                 for m in 0..params::M {
-                    self.belief_of[m][params::M] = self.rng.gen::<bool>();
+                    self.belief_of[n][params::M] = self.rng.gen::<bool>();
                 }
                 // Recompute performance for this individual
-                self.set_performance_single(i);
+                self.set_performance_single(n);
             }
         }
     }
