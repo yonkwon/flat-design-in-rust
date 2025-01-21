@@ -1,8 +1,9 @@
 use hdf5_metno::File;
 use hdf5_metno::dataset::Dataset;
-use crate::params;
+use ndarray::Shape;
+use crate::{experiment_manager::{self, ExperimentManager}, params};
 
-pub struct HDFWriter {
+pub struct HDF5Manager {
     pub hdf5_file: File,
     pub para_iteration: Dataset,
     pub para_time: Dataset,
@@ -27,95 +28,95 @@ pub struct HDFWriter {
     pub para_v_turb_r: Dataset,
     pub para_v_turb_i: Dataset,
     pub r_perf_avg: Dataset,
-    // pub r_perf_std: Dataset,
-    // pub r_perf_nr_avg: Dataset,
-    // pub r_perf_nr_std: Dataset,
-    // pub r_perf_rr_avg: Dataset,
-    // pub r_perf_rr_std: Dataset,
-    // pub r_perf_12_avg: Dataset,
-    // pub r_perf_12_std: Dataset,
-    // pub r_perf_23_avg: Dataset,
-    // pub r_perf_23_std: Dataset,
-    // pub r_perf_13_avg: Dataset,
-    // pub r_perf_13_std: Dataset,
-    // pub r_clws_avg: Dataset,
-    // pub r_clws_std: Dataset,
-    // pub r_clws_12_avg: Dataset,
-    // pub r_clws_12_std: Dataset,
-    // pub r_clws_23_avg: Dataset,
-    // pub r_clws_23_std: Dataset,
-    // pub r_clws_13_avg: Dataset,
-    // pub r_clws_13_std: Dataset,
-    // pub r_clws_nr_avg: Dataset,
-    // pub r_clws_nr_std: Dataset,
-    // pub r_clws_rr_avg: Dataset,
-    // pub r_clws_rr_std: Dataset,
-    // pub r_cent_avg: Dataset,
-    // pub r_cent_std: Dataset,
-    // pub r_cent_12_avg: Dataset,
-    // pub r_cent_12_std: Dataset,
-    // pub r_cent_23_avg: Dataset,
-    // pub r_cent_23_std: Dataset,
-    // pub r_cent_13_avg: Dataset,
-    // pub r_cent_13_std: Dataset,
-    // pub r_cent_nr_avg: Dataset,
-    // pub r_cent_nr_std: Dataset,
-    // pub r_cent_rr_avg: Dataset,
-    // pub r_cent_rr_std: Dataset,
-    // pub r_effi_avg: Dataset,
-    // pub r_effi_std: Dataset,
-    // pub r_effi_12_avg: Dataset,
-    // pub r_effi_12_std: Dataset,
-    // pub r_effi_23_avg: Dataset,
-    // pub r_effi_23_std: Dataset,
-    // pub r_effi_13_avg: Dataset,
-    // pub r_effi_13_std: Dataset,
-    // pub r_effi_nr_avg: Dataset,
-    // pub r_effi_nr_std: Dataset,
-    // pub r_effi_rr_avg: Dataset,
-    // pub r_effi_rr_std: Dataset,
-    // pub r_sigm_avg: Dataset,
-    // pub r_sigm_std: Dataset,
-    // pub r_sigm_12_avg: Dataset,
-    // pub r_sigm_12_std: Dataset,
-    // pub r_sigm_23_avg: Dataset,
-    // pub r_sigm_23_std: Dataset,
-    // pub r_sigm_13_avg: Dataset,
-    // pub r_sigm_13_std: Dataset,
-    // pub r_sigm_nr_avg: Dataset,
-    // pub r_sigm_nr_std: Dataset,
-    // pub r_sigm_rr_avg: Dataset,
-    // pub r_sigm_rr_std: Dataset,
-    // pub r_omeg_avg: Dataset,
-    // pub r_omeg_std: Dataset,
-    // pub r_omeg_12_avg: Dataset,
-    // pub r_omeg_12_std: Dataset,
-    // pub r_omeg_23_avg: Dataset,
-    // pub r_omeg_23_std: Dataset,
-    // pub r_omeg_13_avg: Dataset,
-    // pub r_omeg_13_std: Dataset,
-    // pub r_omeg_nr_avg: Dataset,
-    // pub r_omeg_nr_std: Dataset,
-    // pub r_omeg_rr_avg: Dataset,
-    // pub r_omeg_rr_std: Dataset,
-    // pub r_spva_avg: Dataset,
-    // pub r_spva_std: Dataset,
-    // pub r_spva_12_avg: Dataset,
-    // pub r_spva_12_std: Dataset,
-    // pub r_spva_23_avg: Dataset,
-    // pub r_spva_23_std: Dataset,
-    // pub r_spva_13_avg: Dataset,
-    // pub r_spva_13_std: Dataset,
-    // pub r_spva_nr_avg: Dataset,
-    // pub r_spva_nr_std: Dataset,
-    // pub r_spva_rr_avg: Dataset,
-    // pub r_spva_rr_std: Dataset,
-    // pub perf_seconds: Dataset,
+    pub r_perf_std: Dataset,
+    pub r_perf_rr_avg: Dataset,
+    pub r_perf_rr_std: Dataset,
+    pub r_perf_nr_avg: Dataset,
+    pub r_perf_nr_std: Dataset,
+    pub r_perf_12_avg: Dataset,
+    pub r_perf_12_std: Dataset,
+    pub r_perf_23_avg: Dataset,
+    pub r_perf_23_std: Dataset,
+    pub r_perf_13_avg: Dataset,
+    pub r_perf_13_std: Dataset,
+    pub r_clws_avg: Dataset,
+    pub r_clws_std: Dataset,
+    pub r_clws_rr_avg: Dataset,
+    pub r_clws_rr_std: Dataset,
+    pub r_clws_nr_avg: Dataset,
+    pub r_clws_nr_std: Dataset,
+    pub r_clws_12_avg: Dataset,
+    pub r_clws_12_std: Dataset,
+    pub r_clws_23_avg: Dataset,
+    pub r_clws_23_std: Dataset,
+    pub r_clws_13_avg: Dataset,
+    pub r_clws_13_std: Dataset,
+    pub r_cent_avg: Dataset,
+    pub r_cent_std: Dataset,
+    pub r_cent_rr_avg: Dataset,
+    pub r_cent_rr_std: Dataset,
+    pub r_cent_nr_avg: Dataset,
+    pub r_cent_nr_std: Dataset,
+    pub r_cent_12_avg: Dataset,
+    pub r_cent_12_std: Dataset,
+    pub r_cent_23_avg: Dataset,
+    pub r_cent_23_std: Dataset,
+    pub r_cent_13_avg: Dataset,
+    pub r_cent_13_std: Dataset,
+    pub r_effi_avg: Dataset,
+    pub r_effi_std: Dataset,
+    pub r_effi_rr_avg: Dataset,
+    pub r_effi_rr_std: Dataset,
+    pub r_effi_nr_avg: Dataset,
+    pub r_effi_nr_std: Dataset,
+    pub r_effi_12_avg: Dataset,
+    pub r_effi_12_std: Dataset,
+    pub r_effi_23_avg: Dataset,
+    pub r_effi_23_std: Dataset,
+    pub r_effi_13_avg: Dataset,
+    pub r_effi_13_std: Dataset,
+    pub r_sigm_avg: Dataset,
+    pub r_sigm_std: Dataset,
+    pub r_sigm_rr_avg: Dataset,
+    pub r_sigm_rr_std: Dataset,
+    pub r_sigm_nr_avg: Dataset,
+    pub r_sigm_nr_std: Dataset,
+    pub r_sigm_12_avg: Dataset,
+    pub r_sigm_12_std: Dataset,
+    pub r_sigm_23_avg: Dataset,
+    pub r_sigm_23_std: Dataset,
+    pub r_sigm_13_avg: Dataset,
+    pub r_sigm_13_std: Dataset,
+    pub r_omeg_avg: Dataset,
+    pub r_omeg_std: Dataset,
+    pub r_omeg_rr_avg: Dataset,
+    pub r_omeg_rr_std: Dataset,
+    pub r_omeg_nr_avg: Dataset,
+    pub r_omeg_nr_std: Dataset,
+    pub r_omeg_12_avg: Dataset,
+    pub r_omeg_12_std: Dataset,
+    pub r_omeg_23_avg: Dataset,
+    pub r_omeg_23_std: Dataset,
+    pub r_omeg_13_avg: Dataset,
+    pub r_omeg_13_std: Dataset,
+    pub r_spva_avg: Dataset,
+    pub r_spva_std: Dataset,
+    pub r_spva_rr_avg: Dataset,
+    pub r_spva_rr_std: Dataset,
+    pub r_spva_nr_avg: Dataset,
+    pub r_spva_nr_std: Dataset,
+    pub r_spva_12_avg: Dataset,
+    pub r_spva_12_std: Dataset,
+    pub r_spva_23_avg: Dataset,
+    pub r_spva_23_std: Dataset,
+    pub r_spva_13_avg: Dataset,
+    pub r_spva_13_std: Dataset,
+    pub perf_seconds: Dataset,
     }
 
-impl HDFWriter {
-    pub fn new() -> Self {
-        let hdf5_file = File::create(format!("{}{}.h5", params::FILE_PATH.get().unwrap(), params::FILE_NAME.get().unwrap())).unwrap();
+impl HDF5Manager {
+    pub fn new(experiment_manager:ExperimentManager, time_performance:u64) -> Self {
+        let hdf5_file = File::create(format!("{}{}.h5", *params::FILE_PATH, *params::FILE_NAME).as_str()).unwrap();
         let para_iteration = hdf5_file.new_dataset_builder().with_data(&[params::ITERATION]).create("para_iteration").unwrap();
         let para_time = hdf5_file.new_dataset_builder().with_data(&[params::TIME]).create("para_time").unwrap();
         let para_p_learning = hdf5_file.new_dataset_builder().with_data(&[params::P_LEARNING]).create("para_p_learning").unwrap();
@@ -138,8 +139,92 @@ impl HDFWriter {
         let para_l_turb = hdf5_file.new_dataset_builder().with_data(&[params::LENGTH_TURBULENCE]).create("para_l_turb").unwrap();
         let para_v_turb_r = hdf5_file.new_dataset_builder().with_data(&params::TURBULENCE_RATE).create("para_v_turb_r").unwrap();
         let para_v_turb_i = hdf5_file.new_dataset_builder().with_data(&params::TURBULENCE_INTERVAL).create("para_v_turb_i").unwrap();
-        let r_perf_avg = hdf5_file.new_dataset().shape(params::RESULT_SHAPE).create("r_perf_avg").unwrap();
-        HDFWriter {
+        let r_perf_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_avg.lock().unwrap().view()).create("r_perf_avg").unwrap();
+        let r_perf_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_std.lock().unwrap().view()).create("r_perf_std").unwrap();
+        let r_perf_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_nr_avg.lock().unwrap().view()).create("r_perf_nr_avg").unwrap();
+        let r_perf_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_nr_std.lock().unwrap().view()).create("r_perf_nr_std").unwrap();
+        let r_perf_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_rr_avg.lock().unwrap().view()).create("r_perf_rr_avg").unwrap();
+        let r_perf_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_rr_std.lock().unwrap().view()).create("r_perf_rr_std").unwrap();
+        let r_perf_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_12_avg.lock().unwrap().view()).create("r_perf_12_avg").unwrap();
+        let r_perf_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_12_std.lock().unwrap().view()).create("r_perf_12_std").unwrap();
+        let r_perf_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_23_avg.lock().unwrap().view()).create("r_perf_23_avg").unwrap();
+        let r_perf_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_23_std.lock().unwrap().view()).create("r_perf_23_std").unwrap();
+        let r_perf_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_13_avg.lock().unwrap().view()).create("r_perf_13_avg").unwrap();
+        let r_perf_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_perf_13_std.lock().unwrap().view()).create("r_perf_13_std").unwrap();
+        let r_clws_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_avg.lock().unwrap().view()).create("r_clws_avg").unwrap();
+        let r_clws_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_std.lock().unwrap().view()).create("r_clws_std").unwrap();
+        let r_clws_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_rr_avg.lock().unwrap().view()).create("r_clws_rr_avg").unwrap();
+        let r_clws_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_rr_std.lock().unwrap().view()).create("r_clws_rr_std").unwrap();
+        let r_clws_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_nr_avg.lock().unwrap().view()).create("r_clws_nr_avg").unwrap();
+        let r_clws_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_nr_std.lock().unwrap().view()).create("r_clws_nr_std").unwrap();
+        let r_clws_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_12_avg.lock().unwrap().view()).create("r_clws_12_avg").unwrap();
+        let r_clws_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_12_std.lock().unwrap().view()).create("r_clws_12_std").unwrap();
+        let r_clws_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_23_avg.lock().unwrap().view()).create("r_clws_23_avg").unwrap();
+        let r_clws_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_23_std.lock().unwrap().view()).create("r_clws_23_std").unwrap();
+        let r_clws_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_13_avg.lock().unwrap().view()).create("r_clws_13_avg").unwrap();
+        let r_clws_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_clws_13_std.lock().unwrap().view()).create("r_clws_13_std").unwrap();
+        let r_cent_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_avg.lock().unwrap().view()).create("r_cent_avg").unwrap();
+        let r_cent_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_std.lock().unwrap().view()).create("r_cent_std").unwrap();
+        let r_cent_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_rr_avg.lock().unwrap().view()).create("r_cent_rr_avg").unwrap();
+        let r_cent_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_rr_std.lock().unwrap().view()).create("r_cent_rr_std").unwrap();
+        let r_cent_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_nr_avg.lock().unwrap().view()).create("r_cent_nr_avg").unwrap();
+        let r_cent_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_nr_std.lock().unwrap().view()).create("r_cent_nr_std").unwrap();
+        let r_cent_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_12_avg.lock().unwrap().view()).create("r_cent_12_avg").unwrap();
+        let r_cent_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_12_std.lock().unwrap().view()).create("r_cent_12_std").unwrap();
+        let r_cent_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_23_avg.lock().unwrap().view()).create("r_cent_23_avg").unwrap();
+        let r_cent_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_23_std.lock().unwrap().view()).create("r_cent_23_std").unwrap();
+        let r_cent_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_13_avg.lock().unwrap().view()).create("r_cent_13_avg").unwrap();
+        let r_cent_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_13_std.lock().unwrap().view()).create("r_cent_13_std").unwrap();
+        let r_effi_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_avg.lock().unwrap().view()).create("r_effi_avg").unwrap();
+        let r_effi_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_std.lock().unwrap().view()).create("r_effi_std").unwrap();
+        let r_effi_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_rr_avg.lock().unwrap().view()).create("r_effi_rr_avg").unwrap();
+        let r_effi_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_rr_std.lock().unwrap().view()).create("r_effi_rr_std").unwrap();
+        let r_effi_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_nr_avg.lock().unwrap().view()).create("r_effi_nr_avg").unwrap();
+        let r_effi_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_nr_std.lock().unwrap().view()).create("r_effi_nr_std").unwrap();
+        let r_effi_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_12_avg.lock().unwrap().view()).create("r_effi_12_avg").unwrap();
+        let r_effi_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_12_std.lock().unwrap().view()).create("r_effi_12_std").unwrap();
+        let r_effi_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_23_avg.lock().unwrap().view()).create("r_effi_23_avg").unwrap();
+        let r_effi_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_23_std.lock().unwrap().view()).create("r_effi_23_std").unwrap();
+        let r_effi_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_13_avg.lock().unwrap().view()).create("r_effi_13_avg").unwrap();
+        let r_effi_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_13_std.lock().unwrap().view()).create("r_effi_13_std").unwrap();
+        let r_sigm_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_avg.lock().unwrap().view()).create("r_sigm_avg").unwrap();
+        let r_sigm_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_std.lock().unwrap().view()).create("r_sigm_std").unwrap();
+        let r_sigm_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_rr_avg.lock().unwrap().view()).create("r_sigm_rr_avg").unwrap();
+        let r_sigm_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_rr_std.lock().unwrap().view()).create("r_sigm_rr_std").unwrap();
+        let r_sigm_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_nr_avg.lock().unwrap().view()).create("r_sigm_nr_avg").unwrap();
+        let r_sigm_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_nr_std.lock().unwrap().view()).create("r_sigm_nr_std").unwrap();
+        let r_sigm_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_12_avg.lock().unwrap().view()).create("r_sigm_12_avg").unwrap();
+        let r_sigm_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_12_std.lock().unwrap().view()).create("r_sigm_12_std").unwrap();
+        let r_sigm_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_23_avg.lock().unwrap().view()).create("r_sigm_23_avg").unwrap();
+        let r_sigm_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_23_std.lock().unwrap().view()).create("r_sigm_23_std").unwrap();
+        let r_sigm_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_13_avg.lock().unwrap().view()).create("r_sigm_13_avg").unwrap();
+        let r_sigm_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_sigm_13_std.lock().unwrap().view()).create("r_sigm_13_std").unwrap();
+        let r_omeg_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_avg.lock().unwrap().view()).create("r_omeg_avg").unwrap();
+        let r_omeg_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_std.lock().unwrap().view()).create("r_omeg_std").unwrap();
+        let r_omeg_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_rr_avg.lock().unwrap().view()).create("r_omeg_rr_avg").unwrap();
+        let r_omeg_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_rr_std.lock().unwrap().view()).create("r_omeg_rr_std").unwrap();
+        let r_omeg_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_nr_avg.lock().unwrap().view()).create("r_omeg_nr_avg").unwrap();
+        let r_omeg_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_nr_std.lock().unwrap().view()).create("r_omeg_nr_std").unwrap();
+        let r_omeg_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_12_avg.lock().unwrap().view()).create("r_omeg_12_avg").unwrap();
+        let r_omeg_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_12_std.lock().unwrap().view()).create("r_omeg_12_std").unwrap();
+        let r_omeg_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_23_avg.lock().unwrap().view()).create("r_omeg_23_avg").unwrap();
+        let r_omeg_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_23_std.lock().unwrap().view()).create("r_omeg_23_std").unwrap();
+        let r_omeg_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_13_avg.lock().unwrap().view()).create("r_omeg_13_avg").unwrap();
+        let r_omeg_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_13_std.lock().unwrap().view()).create("r_omeg_13_std").unwrap();
+        let r_spva_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_avg.lock().unwrap().view()).create("r_spva_avg").unwrap();
+        let r_spva_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_std.lock().unwrap().view()).create("r_spva_std").unwrap();
+        let r_spva_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_rr_avg.lock().unwrap().view()).create("r_spva_rr_avg").unwrap();
+        let r_spva_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_rr_std.lock().unwrap().view()).create("r_spva_rr_std").unwrap();
+        let r_spva_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_nr_avg.lock().unwrap().view()).create("r_spva_nr_avg").unwrap();
+        let r_spva_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_nr_std.lock().unwrap().view()).create("r_spva_nr_std").unwrap();
+        let r_spva_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_12_avg.lock().unwrap().view()).create("r_spva_12_avg").unwrap();
+        let r_spva_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_12_std.lock().unwrap().view()).create("r_spva_12_std").unwrap();
+        let r_spva_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_23_avg.lock().unwrap().view()).create("r_spva_23_avg").unwrap();
+        let r_spva_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_23_std.lock().unwrap().view()).create("r_spva_23_std").unwrap();
+        let r_spva_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_13_avg.lock().unwrap().view()).create("r_spva_13_avg").unwrap();
+        let r_spva_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_13_std.lock().unwrap().view()).create("r_spva_13_std").unwrap();
+        let perf_seconds = hdf5_file.new_dataset_builder().with_data(&[time_performance]).create("perf_seconds").unwrap();
+        HDF5Manager {
             hdf5_file,
             para_iteration,
             para_time,
@@ -164,6 +249,94 @@ impl HDFWriter {
             para_v_turb_r,
             para_v_turb_i,
             r_perf_avg,
+            r_perf_std,
+            r_perf_rr_avg,
+            r_perf_rr_std,
+            r_perf_nr_avg,
+            r_perf_nr_std,
+            r_perf_12_avg,
+            r_perf_12_std,
+            r_perf_23_avg,
+            r_perf_23_std,
+            r_perf_13_avg,
+            r_perf_13_std,
+            r_clws_avg,
+            r_clws_std,
+            r_clws_rr_avg,
+            r_clws_rr_std,
+            r_clws_nr_avg,
+            r_clws_nr_std,
+            r_clws_12_avg,
+            r_clws_12_std,
+            r_clws_23_avg,
+            r_clws_23_std,
+            r_clws_13_avg,
+            r_clws_13_std,
+            r_cent_avg,
+            r_cent_std,
+            r_cent_rr_avg,
+            r_cent_rr_std,
+            r_cent_nr_avg,
+            r_cent_nr_std,
+            r_cent_12_avg,
+            r_cent_12_std,
+            r_cent_23_avg,
+            r_cent_23_std,
+            r_cent_13_avg,
+            r_cent_13_std,
+            r_effi_avg,
+            r_effi_std,
+            r_effi_rr_avg,
+            r_effi_rr_std,
+            r_effi_nr_avg,
+            r_effi_nr_std,
+            r_effi_12_avg,
+            r_effi_12_std,
+            r_effi_23_avg,
+            r_effi_23_std,
+            r_effi_13_avg,
+            r_effi_13_std,
+            r_sigm_avg,
+            r_sigm_std,
+            r_sigm_rr_avg,
+            r_sigm_rr_std,
+            r_sigm_nr_avg,
+            r_sigm_nr_std,
+            r_sigm_12_avg,
+            r_sigm_12_std,
+            r_sigm_23_avg,
+            r_sigm_23_std,
+            r_sigm_13_avg,
+            r_sigm_13_std,
+            r_omeg_avg,
+            r_omeg_std,
+            r_omeg_rr_avg,
+            r_omeg_rr_std,
+            r_omeg_nr_avg,
+            r_omeg_nr_std,
+            r_omeg_12_avg,
+            r_omeg_12_std,
+            r_omeg_23_avg,
+            r_omeg_23_std,
+            r_omeg_13_avg,
+            r_omeg_13_std,
+            r_spva_avg,
+            r_spva_std,
+            r_spva_rr_avg,
+            r_spva_rr_std,
+            r_spva_nr_avg,
+            r_spva_nr_std,
+            r_spva_12_avg,
+            r_spva_12_std,
+            r_spva_23_avg,
+            r_spva_23_std,
+            r_spva_13_avg,
+            r_spva_13_std,
+            perf_seconds,
         }
+    }
+
+    pub fn write_to_file(&self) {
+        self.hdf5_file.flush().unwrap();
     }
 }

@@ -3,6 +3,7 @@ use rand::{thread_rng, Rng};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::cmp;
+use std::time::{SystemTime, UNIX_EPOCH};
 use crate::params;
 use crate::network_analyzer;
 
@@ -12,6 +13,7 @@ use crate::network_analyzer;
 pub struct Scenario {
     // Random generator
     pub rng: rand::rngs::ThreadRng,
+    pub tic: usize,
 
     pub social_dynamics: usize,
     pub is_rewiring: bool,
@@ -56,6 +58,8 @@ pub struct Scenario {
     pub global_clustering_watts_strogatz: f64,
     pub overall_centralization: f64,
     pub shortest_path_variance: f64,
+    pub sigma: f64,
+    pub omega: f64,
 
     //Utility 
     pub iterator_focal_index: Vec<usize>,
@@ -73,6 +77,7 @@ impl Scenario {
         turnover_rate: f64,
     ) -> Self {
         let mut scenario = Scenario{
+            tic:SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize,
             social_dynamics,
             is_network_closure: false,
             is_preferential_attachment: false,
@@ -109,9 +114,10 @@ impl Scenario {
             iterator_target_index: vec![0; params::N].into_iter().collect(),
             iterator_dyad_index: vec![0; params::N_DYAD].into_iter().collect(),
             map_dyad2d_index:vec![[0; 2]; params::N_DYAD].into_iter().collect(),
+            sigma: 0.0,
+            omega: 0.0,
         };
 
-        
         for i in 0..params::N {
             scenario.iterator_focal_index[i] = i;
         }

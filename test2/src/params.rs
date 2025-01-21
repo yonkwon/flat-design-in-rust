@@ -1,6 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::env;
 use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 
 pub static RUN_ID: &str = "DATT";
 pub static RUN_DESC: &str = "Standard";
@@ -53,6 +54,11 @@ pub static INFORMAL_REWIRING_NUM: usize = (INFORMAL_INITIAL_NUM as f64 * INFORMA
 pub static NUM_ADDITION: usize = (N_DYAD as f64 * P_ADDITION) as usize;
 
 pub static CLOSENESS_CENTRALIZATION_DENOMINATOR: f64 = (N as f64 - 1.0) * (N as f64- 2.0)  / (2.0 * N as f64 - 3.0);
+pub static CLUSTERING_COEFFICIENT_RANDOM: f64 = (INFORMAL_INITIAL_NUM + N - 1) as f64 / N_DYAD_F64;
+pub static CLUSTERING_COEFFICIENT_RANDOM_NO_SOCIAL_DYNAMICS: f64 = (N - 1) as f64 / N_DYAD_F64;
+
+pub static AVERAGE_PATH_LENGTH_RANDOM: Lazy<f64> = Lazy::new(|| (N as f64).ln() / (CLUSTERING_COEFFICIENT_RANDOM * (N-1) as f64).ln());
+pub static AVERAGE_PATH_LENGTH_RANDOM_NO_SOCIAL_DYNAMICS: Lazy<f64> = Lazy::new(|| (N as f64).ln() / (CLUSTERING_COEFFICIENT_RANDOM_NO_SOCIAL_DYNAMICS * (N-1) as f64).ln());
 
 pub static RESULT_SHAPE: [usize; 6] = [
     NUM_SOCIAL_DYNAMICS,
@@ -65,18 +71,32 @@ pub static RESULT_SHAPE: [usize; 6] = [
 
 pub static PARAMS_INDEX_COMBINATIONS: OnceCell<Vec<(usize, usize, usize, usize, usize)>> = OnceCell::new();
 pub static PARAMS_INDEX_COMBINATIONS_WITH_TIME: OnceCell<Vec<(usize, usize, usize, usize, usize, usize)>> = OnceCell::new();
-pub static PARAM_STRING: OnceCell<String> = OnceCell::new();
-pub static FILE_NAME: OnceCell<String> = OnceCell::new();
-pub static FILE_PATH: OnceCell<String> = OnceCell::new();
-pub static TIC: OnceCell<u128> = OnceCell::new();
+pub static PARAM_STRING: Lazy<String> = Lazy::new(|| 
+    format!(
+        "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_PTurb{}_ITurb{}_PTurn{}_PLrn{}",
+        ITERATION,
+        TIME,
+        if LINK_LEVEL { "1" } else { "0" },
+        if LIMIT_LEVEL { "1" } else { "0" },
+        P_ADDITION,
+        INFORMAL_MAX_NUM,
+        INFORMAL_INITIAL_PROP,
+        INFORMAL_REWIRING_PROP,
+        N,
+        M_IN_BUNDLE,
+        M_OF_BUNDLE,
+        SPAN.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        ENFORCEMENT.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        TURBULENCE_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        TURBULENCE_INTERVAL.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        TURNOVER_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        P_LEARNING
+    ).to_string());
+
+pub static FILE_NAME: Lazy<String> = Lazy::new(|| format!("{}_{}", RUN_ID, *PARAM_STRING));
+pub static FILE_PATH: Lazy<String> = Lazy::new(|| env::current_dir().unwrap().to_str().unwrap().to_string());
 
 pub fn initialize_once_cells() {
-    // PARAMS_INDEX_COMBINATIONS
-    //     .set(Vec::new())
-    //     .expect("Failed to initialize PARAMS_INDEX_COMBINATIONS");
-    // PARAMS_INDEX_COMBINATIONS_WITH_TIME
-    //     .set(Vec::new())
-    //     .expect("Failed to initialize PARAMS_INDEX_COMBINATIONS_WITH_TIME");
 
     let mut combinations = Vec::new();
     let mut combinations_with_time = Vec::new();
@@ -111,38 +131,4 @@ pub fn initialize_once_cells() {
 
     PARAMS_INDEX_COMBINATIONS.set(combinations).unwrap();
     PARAMS_INDEX_COMBINATIONS_WITH_TIME.set(combinations_with_time).unwrap();
-
-    let param_string = format!(
-        "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_PTurb{}_ITurb{}_PTurn{}_PLrn{}",
-        ITERATION,
-        TIME,
-        if LINK_LEVEL { "1" } else { "0" },
-        if LIMIT_LEVEL { "1" } else { "0" },
-        P_ADDITION,
-        INFORMAL_MAX_NUM,
-        INFORMAL_INITIAL_PROP,
-        INFORMAL_REWIRING_PROP,
-        N,
-        M_IN_BUNDLE,
-        M_OF_BUNDLE,
-        SPAN.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        ENFORCEMENT.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURBULENCE_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURBULENCE_INTERVAL.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURNOVER_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        P_LEARNING
-    );
-
-    PARAM_STRING.set(param_string).unwrap();
-
-    FILE_NAME.set(format!("{}_{}", RUN_ID, PARAM_STRING.get().unwrap())).unwrap();
-
-    FILE_PATH.set(env::current_dir().unwrap().to_str().unwrap().to_string()).unwrap();
-
-    TIC.set(
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis(),
-    ).unwrap();
 }
