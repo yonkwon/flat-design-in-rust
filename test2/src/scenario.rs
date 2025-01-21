@@ -834,7 +834,7 @@ impl Scenario {
             if self.rng.gen::<f64>() < self.turnover_rate {
                 // The individual i leaves; fill with new random beliefs
                 for m in 0..params::M {
-                    self.belief_of[n][params::M] = self.rng.gen::<bool>();
+                    self.belief_of[n][m] = self.rng.gen::<bool>();
                 }
                 // Recompute performance for this individual
                 self.set_performance_single(n);
@@ -849,5 +849,6 @@ impl Scenario {
                 self.reality[m] = !self.reality[m];
             }
         }
+        self.set_performance();
     }
 }

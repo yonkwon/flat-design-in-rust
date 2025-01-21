@@ -214,6 +214,8 @@ impl ExperimentManager {
             let indices = vec![*i_social_dynamics, *i_span, *i_enforcement, *i_turbulence, *i_turnover];
             let turbulence_interval = params::TURBULENCE_INTERVAL[*i_turbulence];
             for _ in 0..params::ITERATION {
+                pb.inc(1); // Increment the progress bar
+
                 // Create a new Scenario with the given parameters
                 let mut scenario = Scenario::new(
                     *i_social_dynamics,
@@ -233,6 +235,8 @@ impl ExperimentManager {
                 scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
 
                 for t in 0..params::TIME {
+                    println!("Running experiment for {:?} at {}", indices, t);
+
                     let mut indices_t = indices.clone();
                     indices_t.push(t);
                     let ix_dyn = IxDyn(&indices_t);
