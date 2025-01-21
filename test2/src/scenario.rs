@@ -185,8 +185,7 @@ impl Scenario {
 
         // Re-initialize the network analyzer with the clone's network
         clone.na = network_analyzer::NetworkAnalyzer::new();
-
-        /////////////HOW CAN IT LINK THE NETWORK TO NETOWRKANALYZER
+        clone.na.set_network2_analyze(clone.network.clone());
 
         clone.set_outcome();
 
@@ -499,8 +498,8 @@ impl Scenario {
     /// Equivalent to double getRewiringWeightNetworkClosure(int focal, int target).
     fn get_rewiring_weight_network_closure(&self, focal: usize, target: usize) -> f64 {
         let mut preference_score = 1.0; // to avoid weight of 0
-        for shared in 0..params::N {
-            if self.network[focal][shared] && self.network[target][shared] {
+        for i in 0..params::N {
+            if self.network[focal][i] && self.network[target][i] {
                 preference_score += 1.0;
             }
         }
@@ -570,17 +569,6 @@ impl Scenario {
                     if probability_cum >= marker {
                         let focal = self.map_dyad2d_index[d][0];
                         let target = self.map_dyad2d_index[d][1];
-
-                        // if self.degree_informal[focal] == 0 {
-                        //     println!("\n\nwhat??\t{}", self.network_informal.iter().flatten().map(|&x| x as usize).sum::<usize>());
-                        //             // println!("\n\nINFORMAL\ts{} {} <- {}", self.span, self.network_informal.iter().flatten().map(|&x| x as usize).sum::<usize>(), format!("{:?}",self.network_informal));
-
-                        // }
-
-                        // if !self.network_informal[focal][target] {
-                        //     println!("WTFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\t{} div {}", probability_denominator, format!("{:?}",probability));
-                        // }
-
                         self.network[focal][target] = false;
                         self.network[target][focal] = false;
                         self.network_informal[focal][target] = false;

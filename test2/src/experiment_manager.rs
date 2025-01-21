@@ -204,6 +204,7 @@ impl ExperimentManager {
             params::ITERATION
         );
 
+        //TODO: Create value list within each combination, then save it to ndarray after iteration. This way reduces the number of locks.
         params::PARAMS_INDEX_COMBINATIONS.get().unwrap().into_par_iter().for_each(|(
             i_social_dynamics, 
             i_span, 
@@ -214,8 +215,6 @@ impl ExperimentManager {
             let indices = vec![*i_social_dynamics, *i_span, *i_enforcement, *i_turbulence, *i_turnover];
             let turbulence_interval = params::TURBULENCE_INTERVAL[*i_turbulence];
             for _ in 0..params::ITERATION {
-                pb.inc(1); // Increment the progress bar
-
                 // Create a new Scenario with the given parameters
                 let mut scenario = Scenario::new(
                     *i_social_dynamics,
@@ -235,11 +234,10 @@ impl ExperimentManager {
                 scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
 
                 for t in 0..params::TIME {
-                    // println!("Running experiment for {:?} at {}", indices, t);
-
                     let mut indices_t = indices.clone();
                     indices_t.push(t);
                     let ix_dyn = IxDyn(&indices_t);
+                    println!("data save for {:?} at {}", indices, t);
                     self.r_perf_avg.lock().unwrap()[&ix_dyn] += scenario.performance_avg;
                     self.r_perf_std.lock().unwrap()[&ix_dyn] += scenario.performance_avg.powi(2);
                     self.r_perf_rr_avg.lock().unwrap()[&ix_dyn] += scenario_random_rewiring.performance_avg;
@@ -324,7 +322,8 @@ impl ExperimentManager {
                     self.r_spva_23_std.lock().unwrap()[&ix_dyn] += (scenario_random_rewiring.shortest_path_variance - scenario_no_rewiring.shortest_path_variance).powi(2);
                     self.r_spva_13_avg.lock().unwrap()[&ix_dyn] += scenario.shortest_path_variance - scenario_no_rewiring.shortest_path_variance;
                     self.r_spva_13_std.lock().unwrap()[&ix_dyn] += (scenario.shortest_path_variance - scenario_no_rewiring.shortest_path_variance).powi(2);
-                    
+                    println!("Running expriment for {:?} at {}", indices, t);
+
                     scenario.step_forward();
                     scenario_random_rewiring.step_forward();
                     scenario_no_rewiring.step_forward();
@@ -333,8 +332,11 @@ impl ExperimentManager {
                         scenario_random_rewiring.do_turbulence();
                         scenario_no_rewiring.do_turbulence();
                     }
+                    println!("Experiment finished for {:?} at {}", indices, t);
                 }
             }
+            println!("NEXT STEP");
+
             for t in 0..params::TIME {
                 let mut indices_t = indices.clone();
                 indices_t.push(t);

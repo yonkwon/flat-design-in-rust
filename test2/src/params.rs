@@ -2,6 +2,8 @@ use std::env;
 use once_cell::sync::OnceCell;
 use once_cell::sync::Lazy;
 
+pub static MAX_THREAD:usize = 1;
+
 pub static PRINT_NETWORK_CSV: bool = true;
 
 pub static RUN_ID: &str = "DATT";
@@ -10,12 +12,12 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 10000;
+pub static ITERATION: usize = 1;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
-pub static TIME: usize = 751;
+pub static TIME: usize = 300;
 
 pub static INFORMAL_MAX_NUM: isize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
@@ -136,4 +138,8 @@ pub fn initialize_once_cells() {
 
     PARAMS_INDEX_COMBINATIONS.set(combinations).unwrap();
     PARAMS_INDEX_COMBINATIONS_WITH_TIME.set(combinations_with_time).unwrap();
+}
+
+pub fn check_validity(){
+    //TODO: Implement this function; M should be divisible by M_IN_BUNDLE.
 }
