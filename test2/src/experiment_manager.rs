@@ -189,7 +189,6 @@ impl ExperimentManager {
     }
 
     pub fn run_experiments(&mut self) {
-        let tic = std::time::Instant::now().elapsed().as_millis();
         // Iterate over each combination in parallel
         let total_steps = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() * params::ITERATION * params::TIME;
         let pb = ProgressBar::new(total_steps as u64);
