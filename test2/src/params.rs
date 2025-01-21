@@ -35,21 +35,12 @@ pub static LENGTH_ENFORCEMENT: usize = ENFORCEMENT.len();
 
 // pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
 // pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
-<<<<<<< HEAD
 pub static TURBULENCE_RATE: [f64; 1] = [0.0];
 pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
 pub static LENGTH_TURBULENCE: usize = TURBULENCE_RATE.len();
 
 // pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
 pub static TURNOVER_RATE: [f64; 1] = [0.0];
-=======
-pub static TURBULENCE_RATE: [f64; 3] = [0.0];
-pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME];
-pub static LENGTH_TURBULENCE: usize = TURBULENCE_RATE.len();
-
-// pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
-pub static TURNOVER_RATE: [f64; 3] = [0.0];
->>>>>>> ed742271cd35a58950499e0129a3f2bf5d6cbd55
 pub static LENGTH_TURNOVER: usize = TURNOVER_RATE.len();
 
 pub static P_LEARNING: f64 = 0.2;
