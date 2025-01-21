@@ -44,9 +44,9 @@ pub struct Scenario {
     pub network_limited: Vec<Vec<bool>>,
     pub na: crate::network_analyzer::NetworkAnalyzer,
 
-    pub degree: Vec<usize>,
-    pub degree_formal: Vec<usize>,
-    pub degree_informal: Vec<usize>,
+    pub degree: Vec<isize>,
+    pub degree_formal: Vec<isize>,
+    pub degree_informal: Vec<isize>,
 
     pub preference_score: Vec<Vec<f64>>,
     pub preference_score_avg: Vec<f64>,
