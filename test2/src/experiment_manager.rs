@@ -235,7 +235,7 @@ impl ExperimentManager {
                 scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
 
                 for t in 0..params::TIME {
-                    println!("Running experiment for {:?} at {}", indices, t);
+                    // println!("Running experiment for {:?} at {}", indices, t);
 
                     let mut indices_t = indices.clone();
                     indices_t.push(t);
