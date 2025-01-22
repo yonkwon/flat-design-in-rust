@@ -2,7 +2,7 @@ use std::env;
 use once_cell::sync::OnceCell;
 use once_cell::sync::Lazy;
 
-pub static MAX_THREAD:usize = 1;
+pub static MAX_THREAD:usize = 4;
 
 pub static PRINT_NETWORK_CSV: bool = true;
 
@@ -12,7 +12,7 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 1;
+pub static ITERATION: usize = 10;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
@@ -31,18 +31,18 @@ pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 pub static LENGTH_SPAN: usize = SPAN.len();
 
 // pub static ENFORCEMENT: [f64; 4] = [0.0, 0.5, 0.8, 1.0];
-// pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
-pub static ENFORCEMENT: [f64; 1] = [1.0];
+pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
+// pub static ENFORCEMENT: [f64; 1] = [1.0];
 pub static LENGTH_ENFORCEMENT: usize = ENFORCEMENT.len();
 
-// pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
-// pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
-pub static TURBULENCE_RATE: [f64; 1] = [0.0];
-pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
+pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
+pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
+// pub static TURBULENCE_RATE: [f64; 1] = [0.0];
+// pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
 pub static LENGTH_TURBULENCE: usize = TURBULENCE_RATE.len();
 
-// pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
-pub static TURNOVER_RATE: [f64; 1] = [0.0];
+pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
+// pub static TURNOVER_RATE: [f64; 1] = [0.0];
 pub static LENGTH_TURNOVER: usize = TURNOVER_RATE.len();
 
 pub static P_LEARNING: f64 = 0.2;
