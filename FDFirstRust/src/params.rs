@@ -2,7 +2,7 @@ use std::env;
 use once_cell::sync::OnceCell;
 use once_cell::sync::Lazy;
 
-pub static MAX_THREAD:usize = 4;
+pub static MAX_THREAD:usize = 101;
 
 pub static PRINT_NETWORK_CSV: bool = true;
 
@@ -12,7 +12,7 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 10;
+pub static ITERATION: usize = 102;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
