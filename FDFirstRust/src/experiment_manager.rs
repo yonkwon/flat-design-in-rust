@@ -514,9 +514,10 @@ impl ExperimentManager {
                     scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
     
                     let file_name_network_csv = format!("network_sd{}_span{}_enfo{}_pturb{}_iturb{}_pturn{}.csv", if *i_social_dynamics==0 {"NetCl"} else {"PrfAt"}, span, enforcement, turbulence_rate, turbulence_interval, turnover_rate);
-                    scenario.export_network_csv(format!("{}_{}_t0", "sc", &file_name_network_csv).as_str());
-                    scenario_random_rewiring.export_network_csv(format!("{}_{}_t0", "rr", &file_name_network_csv).as_str());
-                    scenario_no_rewiring.export_network_csv(format!("{}_{}_t0", "nr", &file_name_network_csv).as_str());
+                    let path_network_csv = format!("{}/{}/", *params::FILE_PATH, *params::PARAM_STRING);
+                    scenario.export_network_csv(format!("{}_{}_{}_t0", &path_network_csv, "sc", &file_name_network_csv).as_str());
+                    scenario_random_rewiring.export_network_csv(format!("{}_{}_{}_t0", &path_network_csv, "rr", &file_name_network_csv).as_str());
+                    scenario_no_rewiring.export_network_csv(format!("{}_{}_{}_t0", &path_network_csv, "nr", &file_name_network_csv).as_str());
                     
                     for t in 0..params::TIME {
                         scenario.step_forward();
@@ -529,9 +530,9 @@ impl ExperimentManager {
                         }
                     }
 
-                    scenario.export_network_csv(format!("{}_{}_t{}", "sc", &file_name_network_csv, params::TIME-1).as_str());
-                    scenario_random_rewiring.export_network_csv(format!("{}_{}_t{}", "rr", &file_name_network_csv, params::TIME-1).as_str());
-                    scenario_no_rewiring.export_network_csv(format!("{}_{}_t{}", "nr", &file_name_network_csv, params::TIME-1).as_str());
+                    scenario.export_network_csv(format!("{}_{}_{}_t0{}", &path_network_csv, "sc", &file_name_network_csv, params::TIME).as_str());
+                    scenario_random_rewiring.export_network_csv(format!("{}_{}_{}_t0{}", &path_network_csv, "rr", &file_name_network_csv, params::TIME).as_str());
+                    scenario_no_rewiring.export_network_csv(format!("{}_{}_{}_t0{}", &path_network_csv, "nr", &file_name_network_csv, params::TIME).as_str());
 
                     pb.inc(1); // Increment the progress bar
                 });
