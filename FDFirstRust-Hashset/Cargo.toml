@@ -1,0 +1,25 @@
+[package]
+name = "test2"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8.4"
+once_cell = "1.20.2"
+rayon = "1.5" # Parallelism
+ndarray = "0.16.1"
+
+hdf5-metno-sys = {version = "0.10.1", features = ["static"]}
+hdf5-metno = "0.9.4"
+
+# hdf5-sys = { version = "0.8.1", features = ["static"] }
+# hdf5 = "0.8.1"
+
+indicatif = {version = "0.17.9", features = ["rayon"]}
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+debug = true
