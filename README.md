@@ -1,2 +1,2 @@
-# test-rust-sqlite
-Testing the combination of Rust and SQLite as tools for computational modeling
+# flat-design-in-rust
+Reconstruction of the `DesignAmidst` project using Rust and HDF5 to enhance computing performance
