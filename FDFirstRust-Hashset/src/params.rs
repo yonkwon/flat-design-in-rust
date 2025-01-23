@@ -12,12 +12,12 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 1;
+pub static ITERATION: usize = 102;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
-pub static TIME: usize = 4;
+pub static TIME: usize = 501;
 
 pub static INFORMAL_MAX_NUM: usize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
@@ -80,7 +80,8 @@ pub static PARAMS_INDEX_COMBINATIONS: OnceCell<Vec<(usize, usize, usize, usize, 
 pub static PARAMS_INDEX_COMBINATIONS_WITH_TIME: OnceCell<Vec<(usize, usize, usize, usize, usize, usize)>> = OnceCell::new();
 pub static PARAM_STRING: Lazy<String> = Lazy::new(|| 
     format!(
-        "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_PTurb{}_ITurb{}_PTurn{}_PLrn{}",
+        // "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_PTurb{}_ITurb{}_PTurn{}_PLrn{}",
+        "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_Turb{}_Turn{}_PLrn{}",
         ITERATION,
         TIME,
         if LINK_LEVEL { "1" } else { "0" },
@@ -92,11 +93,15 @@ pub static PARAM_STRING: Lazy<String> = Lazy::new(||
         N,
         M_IN_BUNDLE,
         M_OF_BUNDLE,
-        SPAN.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        ENFORCEMENT.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURBULENCE_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURBULENCE_INTERVAL.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURNOVER_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        SPAN.len(),
+        ENFORCEMENT.len(),
+        TURBULENCE_RATE.len(),
+        TURBULENCE_INTERVAL.len(),
+        // SPAN.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        // ENFORCEMENT.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        // TURBULENCE_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        // TURBULENCE_INTERVAL.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        // TURNOVER_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
         P_LEARNING
     ).to_string());
 
