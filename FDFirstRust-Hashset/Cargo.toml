@@ -18,7 +18,7 @@ hdf5-metno = "0.9.4"
 indicatif = {version = "0.17.9", features = ["rayon"]}
 
 [profile.dev]
-opt-level = 0
+opt-level = 3
 
 [profile.release]
 opt-level = 3
