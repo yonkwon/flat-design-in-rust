@@ -95,8 +95,8 @@ set_fig_enforcement <- data$para_l_enfo
 set_fig_turbulence <- 1
 set_fig_turnover <- 1
 
-set_fig_t <- 3
-# set_fig_t <- data$para_time
+# set_fig_t <- 3
+set_fig_t <- data$para_time
 
 x_label <- expression("Span of Control (S)")
 x_tick_label <- data$para_v_span
@@ -375,12 +375,12 @@ set_fig_width <- 6.5
 set_fig_height <- 4
 set_fig_ylim <- c(-.1, .9)
 
-set_fig_span <- c(1, data$para_l_span)
-set_fig_enforcement <- 1
 set_fig_t_end <- data$para_time
 
+set_fig_span <- c(1, data$para_l_span)
+set_fig_enforcement <- data$para_l_enfo
 set_fig_turbulence <- 1
-set_fig_turnover <- 3
+set_fig_turnover <- 1
 
 set_fig_t <- 1:set_fig_t_end
 x_label <- expression(Time ~ Period ~ (italic(t)))
@@ -482,8 +482,8 @@ ggsave(
     "t",
     set_fig_t_end,
     "turb",
-    data$para_v_turb.r[set_fig_turbulence], 
-    "@", data$para_v_turb.i[set_fig_turbulence], 
+    data$para_v_turb_r[set_fig_turbulence], 
+    "@", data$para_v_turb_i[set_fig_turbulence], 
     "turn",
     data$para_v_turn[set_fig_turnover], 
     ".png"
@@ -675,7 +675,7 @@ set_fig_height <- 6
 set_fig_mech <- 1:data$para_l_mech
 set_fig_span <- 1:data$para_l_span
 
-set_fig_enforcement <- 1
+set_fig_enforcement <- data$para_l_enfo
 
 set_fig_turbulence <- 1
 set_fig_turnover <- 1
@@ -890,68 +890,68 @@ x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_la
 x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
 
 # param1_label <- '(A) Small-Worldiness (Q)'
-# param1_value_sc <- data$r.sigm_avg
-# param1_value_nr <- data$r.sigm.nr_avg
-# param1_value_rr <- data$r.sigm.rr_avg
+# param1_value_sc <- data$r_sigm_avg
+# param1_value_nr <- data$r_sigm.nr_avg
+# param1_value_rr <- data$r_sigm.rr_avg
 # param2_label <- '(B) Centralization (C)'
-# param2_value_sc <- data$r.cent_avg
-# param2_value_nr <- data$r.cent.nr_avg
-# param2_value_rr <- data$r.cent.rr_avg
+# param2_value_sc <- data$r_cent_avg
+# param2_value_nr <- data$r_cent_nr_avg
+# param2_value_rr <- data$r_cent_rr_avg
 
 # param1_label <- '(A) Small-Worldiness (Q)'
-# param1_value_sc <- data$r.sigm_avg
-# param1_value_nr <- data$r.sigm.nr_avg
-# param1_value_rr <- data$r.sigm.rr_avg
+# param1_value_sc <- data$r_sigm_avg
+# param1_value_nr <- data$r_sigm.nr_avg
+# param1_value_rr <- data$r_sigm.rr_avg
 # param2_label <- '(B) OMEGA'
-# param2_value_sc <- data$r.omeg_avg
-# param2_value_nr <- data$r.omeg.nr_avg
-# param2_value_rr <- data$r.omeg.rr_avg
+# param2_value_sc <- data$r_omeg_avg
+# param2_value_nr <- data$r_omeg.nr_avg
+# param2_value_rr <- data$r_omeg.rr_avg
 
 param1_label <- "(A) Average Path Length"
-param1_value_sc <- data$r.dist_avg
-param1_value_nr <- data$r.dist.nr_avg
-param1_value_rr <- data$r.dist.rr_avg
+param1_value_sc <- data$r_dist_avg
+param1_value_nr <- data$r_dist.nr_avg
+param1_value_rr <- data$r_dist.rr_avg
 # param2_label <- '(B) Clustering Coefficient (WS)'
-# param2_value_sc <- data$r.clws_avg
-# param2_value_nr <- data$r.clws.nr_avg
-# param2_value_rr <- data$r.clws.rr_avg
+# param2_value_sc <- data$r_clws_avg
+# param2_value_nr <- data$r_clws.nr_avg
+# param2_value_rr <- data$r_clws.rr_avg
 # param2_label <- '(B) Clustering Coefficient'
-# param2_value_sc <- data$r.clus_avg
-# param2_value_nr <- data$r.clus.nr_avg
-# param2_value_rr <- data$r.clus.rr_avg
+# param2_value_sc <- data$r_clus_avg
+# param2_value_nr <- data$r_clus.nr_avg
+# param2_value_rr <- data$r_clus.rr_avg
 
 # param1_label <- '(A) Clustering Coefficient WS'
-# param1_value_sc <- data$r.clws_avg
-# param1_value_nr <- data$r.clws.nr_avg
-# param1_value_rr <- data$r.clws.rr_avg
+# param1_value_sc <- data$r_clws_avg
+# param1_value_nr <- data$r_clws.nr_avg
+# param1_value_rr <- data$r_clws.rr_avg
 # param2_label <- '(B) Clustering Coefficient'
-# param2_value_sc <- data$r.clus_avg
-# param2_value_nr <- data$r.clus.nr_avg
-# param2_value_rr <- data$r.clus.rr_avg
+# param2_value_sc <- data$r_clus_avg
+# param2_value_nr <- data$r_clus.nr_avg
+# param2_value_rr <- data$r_clus.rr_avg
 
 # param1_label <- '(A) Centralization'
-# param1_value_sc <- data$r.cent_avg
-# param1_value_nr <- data$r.cent.nr_avg
-# param1_value_rr <- data$r.cent.rr_avg
+# param1_value_sc <- data$r_cent_avg
+# param1_value_nr <- data$r_cent_nr_avg
+# param1_value_rr <- data$r_cent_rr_avg
 # param2_label <- '(B) Network Efficiency'
-# param2_value_sc <- data$r.effi_avg
-# param2_value_nr <- data$r.effi.nr_avg
-# param2_value_rr <- data$r.effi.rr_avg
+# param2_value_sc <- data$r_effi_avg
+# param2_value_nr <- data$r_effi.nr_avg
+# param2_value_rr <- data$r_effi.rr_avg
 
 # param2_label <- '(B) Centralization'
-# param2_value_sc <- data$r.cent_avg
-# param2_value_nr <- data$r.cent.nr_avg
-# param2_value_rr <- data$r.cent.rr_avg
+# param2_value_sc <- data$r_cent_avg
+# param2_value_nr <- data$r_cent_nr_avg
+# param2_value_rr <- data$r_cent_rr_avg
 
 param2_label <- "(A) Distance Variance"
-param2_value_sc <- data$r.spva_avg
-param2_value_nr <- data$r.spva.nr_avg
-param2_value_rr <- data$r.spva.rr_avg
+param2_value_sc <- data$r_spva_avg
+param2_value_nr <- data$r_spva_nr_avg
+param2_value_rr <- data$r_spva_rr_avg
 
 param2_label <- "(B) Betweenness Centrality Variance"
-param2_value_sc <- data$r.bcva_avg
-param2_value_nr <- data$r.bcva.nr_avg
-param2_value_rr <- data$r.bcva.rr_avg
+param2_value_sc <- data$r_bcva_avg
+param2_value_nr <- data$r_bcva_nr_avg
+param2_value_rr <- data$r_bcva_rr_avg
 
 param_label <- c(param1_label, param2_label)
 param_label <- factor(param_label, levels = param_label)
@@ -1101,30 +1101,30 @@ x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_la
 x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
 
 param1_label <- "(A) Small-World Quotient (Q)"
-param1_value_sc <- data$r.sigm_avg
-param1_value_nr <- data$r.sigm.nr_avg
-param1_value_rr <- data$r.sigm.rr_avg
+param1_value_sc <- data$r_sigm_avg
+param1_value_nr <- data$r_sigm.nr_avg
+param1_value_rr <- data$r_sigm.rr_avg
 param2_label <- "(B) Small-World Omega (\u03C9)"
-param2_value_sc <- data$r.omeg_avg
-param2_value_nr <- data$r.omeg.nr_avg
-param2_value_rr <- data$r.omeg.rr_avg
+param2_value_sc <- data$r_omeg_avg
+param2_value_nr <- data$r_omeg.nr_avg
+param2_value_rr <- data$r_omeg.rr_avg
 # param2_label <- '(B) Overall Centralization'
-# param2_value_sc <- data$r.cent_avg
-# param2_value_nr <- data$r.cent.nr_avg
-# param2_value_rr <- data$r.cent.rr_avg
+# param2_value_sc <- data$r_cent_avg
+# param2_value_nr <- data$r_cent_nr_avg
+# param2_value_rr <- data$r_cent_rr_avg
 
 param1_label <- "(A) Average Distance Variance"
-param1_value_sc <- data$r.spva_avg
-param1_value_nr <- data$r.spva.nr_avg
-param1_value_rr <- data$r.spva.rr_avg
+param1_value_sc <- data$r_spva_avg
+param1_value_nr <- data$r_spva_nr_avg
+param1_value_rr <- data$r_spva_rr_avg
 param2_label <- "(B) Overall Centralization"
-param2_value_sc <- data$r.cent_avg
-param2_value_nr <- data$r.cent.nr_avg
-param2_value_rr <- data$r.cent.rr_avg
+param2_value_sc <- data$r_cent_avg
+param2_value_nr <- data$r_cent_nr_avg
+param2_value_rr <- data$r_cent_rr_avg
 # param2_label <- '(B) Betweenness Centrality Variance'
-# param2_value_sc <- data$r.bcva_avg
-# param2_value_nr <- data$r.bcva.nr_avg
-# param2_value_rr <- data$r.bcva.rr_avg
+# param2_value_sc <- data$r_bcva_avg
+# param2_value_nr <- data$r_bcva_nr_avg
+# param2_value_rr <- data$r_bcva_rr_avg
 
 param_label <- c(param1_label, param2_label)
 param_label <- factor(param_label, levels = param_label)
@@ -1239,7 +1239,6 @@ ggsave(
 ```
 
 ## Changes in Network Features
-
 ```{r fig}
 set_fig_width <- 6.5
 set_fig_height <- 3
@@ -1250,6 +1249,7 @@ tick_label_size <- 8
 set_fig_h <- 1
 
 set_fig_mech <- 1:data$para_l_mech
+set_fig_mech <- 1:2
 set_fig_span <- 1:data$para_l_span
 
 set_fig_enforcement <- data$para_l_enfo
@@ -1267,13 +1267,13 @@ x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_la
 x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
 
 param1_label <- "Average Distance Variance"
-param1_value_sc <- data$r.spva_avg
-param1_value_nr <- data$r.spva.nr_avg
-param1_value_rr <- data$r.spva.rr_avg
+param1_value_sc <- aperm(data$r_spva_avg)
+param1_value_nr <- aperm(data$r_spva_nr_avg)
+param1_value_rr <- aperm(data$r_spva_rr_avg)
 param2_label <- "Overall Centralization"
-param2_value_sc <- data$r.cent_avg
-param2_value_nr <- data$r.cent.nr_avg
-param2_value_rr <- data$r.cent.rr_avg
+param2_value_sc <- aperm(data$r_cent_avg)
+param2_value_nr <- aperm(data$r_cent_nr_avg)
+param2_value_rr <- aperm(data$r_cent_rr_avg)
 
 param_label <- c(param1_label, param2_label)
 param_label <- factor(param_label, levels = param_label)
@@ -1343,7 +1343,7 @@ for (mech in set_fig_mech) {
     x_end = param1_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
     y_end = param2_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
   )
-  # df_fig <- rbind(df_fig, df_next)
+  df_fig <- rbind(df_fig, df_next)
 }
 
 df_fig[df_fig$mech == "(ii) Network Closure", ]$span_label <- ""
@@ -1447,7 +1447,6 @@ edge_alpha <- .75
 ```
 
 ## Network Grpaher
-
 ```{r net}
 files2print <- function(list_file) {
   for (file in list_file) {

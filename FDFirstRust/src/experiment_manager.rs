@@ -586,7 +586,7 @@ impl ExperimentManager {
                     scenario.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Systematically formed
                     scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
     
-                    let file_name_network_csv = format!("network_sd{}_span{}_enfo{}_pturb{}_iturb{}_pturn{}.csv", if *i_social_dynamics==0 {"NetCl"} else {"PrfAt"}, span, enforcement, turbulence_rate, turbulence_interval, turnover_rate);
+                    let file_name_network_csv = format!("{}_s{}_e{}_ptb{}_itb{}_ptn{}.csv", if *i_social_dynamics==0 {"NetCl"} else {"PrfAt"}, span, enforcement, turbulence_rate, turbulence_interval, turnover_rate);
                     let path_network_csv = (params::PARAM_STRING).clone();
                     scenario.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "sc", &file_name_network_csv).as_str());
                     scenario_random_rewiring.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "rr", &file_name_network_csv).as_str());
