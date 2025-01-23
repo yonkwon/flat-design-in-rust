@@ -17,7 +17,7 @@ pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
-pub static TIME: usize = 5;
+pub static TIME: usize = 501;
 
 pub static INFORMAL_MAX_NUM: isize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
@@ -67,14 +67,25 @@ pub static CLUSTERING_COEFFICIENT_RANDOM_NO_SOCIAL_DYNAMICS: f64 = (N - 1) as f6
 pub static AVERAGE_PATH_LENGTH_RANDOM: Lazy<f64> = Lazy::new(|| (N as f64).ln() / (CLUSTERING_COEFFICIENT_RANDOM * (N-1) as f64).ln());
 pub static AVERAGE_PATH_LENGTH_RANDOM_NO_SOCIAL_DYNAMICS: Lazy<f64> = Lazy::new(|| (N as f64).ln() / (CLUSTERING_COEFFICIENT_RANDOM_NO_SOCIAL_DYNAMICS * (N-1) as f64).ln());
 
+// pub static RESULT_SHAPE: [usize; 6] = [
+//     NUM_SOCIAL_DYNAMICS,
+//     LENGTH_SPAN as usize,
+//     LENGTH_ENFORCEMENT as usize,
+//     LENGTH_TURBULENCE as usize,
+//     LENGTH_TURNOVER as usize,
+//     TIME,
+// ];
+
+//Will be printed in the reverse order
 pub static RESULT_SHAPE: [usize; 6] = [
-    NUM_SOCIAL_DYNAMICS,
-    LENGTH_SPAN as usize,
-    LENGTH_ENFORCEMENT as usize,
-    LENGTH_TURBULENCE as usize,
-    LENGTH_TURNOVER as usize,
     TIME,
+    LENGTH_TURNOVER as usize,
+    LENGTH_TURBULENCE as usize,
+    LENGTH_ENFORCEMENT as usize,
+    LENGTH_SPAN as usize,
+    NUM_SOCIAL_DYNAMICS,
 ];
+
 
 pub static PARAMS_INDEX_COMBINATIONS: OnceCell<Vec<(usize, usize, usize, usize, usize)>> = OnceCell::new();
 pub static PARAMS_INDEX_COMBINATIONS_WITH_TIME: OnceCell<Vec<(usize, usize, usize, usize, usize, usize)>> = OnceCell::new();

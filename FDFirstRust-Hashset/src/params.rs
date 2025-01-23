@@ -12,12 +12,12 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 102;
+pub static ITERATION: usize = 1;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
-pub static TIME: usize = 5;
+pub static TIME: usize = 4;
 
 pub static INFORMAL_MAX_NUM: usize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
