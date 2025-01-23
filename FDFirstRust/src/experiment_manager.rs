@@ -352,6 +352,8 @@ impl ExperimentManager {
                         scenario_random_rewiring.do_turbulence();
                         scenario_no_rewiring.do_turbulence();
                     }
+                    
+                    pb.inc(1); // Increment the progress bar
                 }
             }
             
@@ -535,7 +537,6 @@ impl ExperimentManager {
                 self.r_spva_13_std.lock().unwrap()[&ix_dyn] = local_spva_13.std[t];
                 
             }
-            pb.inc(1); // Increment the progress bar
             },
         );
         pb.finish_with_message("Done!");
