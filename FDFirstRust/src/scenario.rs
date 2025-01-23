@@ -2,10 +2,10 @@ use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
 use std::fs::File;
 use std::io::{BufWriter, Write};
-use std::cmp;
+use std::{cmp, usize};
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::params;
-use crate::network_analyzer;
+use crate::network_analyzer::{self, NetworkAnalyzer};
 
 // --------------------------------------------------------------------
 // The Scenario struct in Rust
@@ -29,11 +29,10 @@ pub struct Scenario {
     pub turnover_rate: f64,
 
     // Reality replaced by a 1D bool array
-    pub reality: Vec<bool>,
-    pub reality_bundle_id: Vec<usize>,
+    pub reality: Vec<Vec<bool>>,
 
-    pub belief_of: Vec<Vec<bool>>,
-    pub performance_usize: Vec<usize>,
+    pub belief_of: Vec<Vec<Vec<bool>>>,
+    pub performance_of: Vec<usize>,
     pub level_of: Vec<usize>,
     pub level_range: f64,
 
@@ -42,7 +41,7 @@ pub struct Scenario {
     pub network_formal: Vec<Vec<bool>>,
     pub network_informal: Vec<Vec<bool>>,
     pub network_limited: Vec<Vec<bool>>,
-    pub na: crate::network_analyzer::NetworkAnalyzer,
+    pub network_analyzer: crate::network_analyzer::NetworkAnalyzer,
 
     pub degree: Vec<isize>,
     pub degree_formal: Vec<isize>,
@@ -64,8 +63,7 @@ pub struct Scenario {
     //Utility 
     pub iterator_focal_index: Vec<usize>,
     pub iterator_target_index: Vec<usize>,
-    pub iterator_dyad_index: Vec<usize>,
-    pub map_dyad2d_index: Vec<[usize; 2]>
+    pub iterator_dyad: Vec<(usize, usize)>,
 }
 
 impl Scenario {
@@ -76,68 +74,71 @@ impl Scenario {
         turbulence_rate: f64,
         turnover_rate: f64,
     ) -> Self {
+        let tic =  SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize;
+        let rng = thread_rng();
+        let reality = vec![vec![false; params::M_IN_BUNDLE]; params::M_OF_BUNDLE];
+        let belief_of = vec![vec![vec![false; params::M_IN_BUNDLE]; params::M_OF_BUNDLE]; params::N];
+        let performance_usize = vec![0; params::N];
+        let level_of = vec![0; params::N];
+        let network = vec![vec![false; params::N]; params::N];
+        let network_formal = network.clone();
+        let network_informal = network.clone();
+        let network_limited = network.clone();
+        let network_analyzer = NetworkAnalyzer::new();
+        let degree = vec![0;params::N];
+        let degree_formal = degree.clone();
+        let degree_informal = degree.clone();
+        let preference_score = vec![vec![0.0; params::N]; params::N];
+        let preference_score_avg = vec![0.0; params::N];
+        let iterator_focal_index: Vec<usize> = (0..params::N).collect();
+        let iterator_target_index = iterator_focal_index.clone();
+        let mut iterator_dyad = Vec::with_capacity(params::N_DYAD);
+
+        for i in 0..params::N {
+            for j in (i + 1)..params::N {
+                iterator_dyad.push((i, j));
+            }
+        }
+
         let mut scenario = Scenario{
-            tic:SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize,
+            rng,
+            tic,
             social_dynamics,
-            is_network_closure: false,
-            is_preferential_attachment: false,
             is_rewiring: true,
             is_random_rewiring: false,
+            is_network_closure: false,
+            is_preferential_attachment: false,
             span,
             enforcement,
             turbulence_rate,
             turnover_rate,
-            rng: thread_rng(),
-            na: crate::network_analyzer::NetworkAnalyzer::new(),
-            reality: vec![false; params::N],
-            reality_bundle_id: vec![0; params::N],
-            belief_of: vec![vec![false; params::N]; params::N],
-            performance_usize: vec![0; params::N],
-            level_of: vec![0; params::N],
+            reality,
+            belief_of,
+            performance_of: performance_usize,
+            level_of,
             level_range: 0.0,
-            network: vec![vec![false; params::N]; params::N],
-            network_formal: vec![vec![false; params::N]; params::N],
-            network_informal: vec![vec![false; params::N]; params::N],
-            network_limited: vec![vec![false; params::N]; params::N],
-            degree: vec![0; params::N],
-            degree_formal: vec![0; params::N],
-            degree_informal: vec![0; params::N],
-            preference_score: vec![vec![0.0; params::N]; params::N],
-            preference_score_avg: vec![0.0; params::N],
+            network,
+            network_formal,
+            network_informal,
+            network_limited,
+            network_analyzer,
+            degree,
+            degree_formal,
+            degree_informal,
+            preference_score,
+            preference_score_avg,
             performance_avg: 0.0,
             average_path_length: 0.0,
             network_efficiency: 0.0,
             global_clustering_watts_strogatz: 0.0,
             overall_centralization: 0.0,
             shortest_path_variance: 0.0,
-            iterator_focal_index: vec![0; params::N].into_iter().collect(),
-            iterator_target_index: vec![0; params::N].into_iter().collect(),
-            iterator_dyad_index: vec![0; params::N_DYAD].into_iter().collect(),
-            map_dyad2d_index:vec![[0; 2]; params::N_DYAD].into_iter().collect(),
+            iterator_focal_index,
+            iterator_target_index,
+            iterator_dyad,
             sigma: 0.0,
             omega: 0.0,
         };
-
-        for i in 0..params::N {
-            scenario.iterator_focal_index[i] = i;
-        }
-        scenario.iterator_target_index = scenario.iterator_focal_index.clone();
-
-        scenario.iterator_dyad_index = vec![0; params::N_DYAD];
-        scenario.map_dyad2d_index = vec![[0; 2]; params::N_DYAD];
-
-        let mut d = 0;
-        for i in 0..params::N {
-            for j in i..params::N {
-                if i == j {
-                    continue;
-                }
-                scenario.iterator_dyad_index[d] = d;
-                scenario.map_dyad2d_index[d][0] = i;
-                scenario.map_dyad2d_index[d][1] = j;
-                d += 1;
-            }
-        }
 
         // Set flags based on social_dynamics
         match social_dynamics {
@@ -165,27 +166,16 @@ impl Scenario {
         );
 
         clone.reality = self.reality.clone();
-        clone.reality_bundle_id = self.reality_bundle_id.clone();
-        clone.performance_usize = self.performance_usize.clone();
+        clone.performance_of = self.performance_of.clone();
         clone.performance_avg = self.performance_avg;
-
-        // Clone beliefOf
-        for focal in 0..params::N {
-            clone.belief_of[focal] = self.belief_of[focal].clone();
-
-            clone.network_formal[focal] = self.network_formal[focal].clone();
-            clone.network_informal[focal] = self.network_informal[focal].clone();
-            clone.network[focal] = self.network[focal].clone();
-        }
-
-        // Clone degrees
+        clone.belief_of = self.belief_of.clone();
+        clone.network_formal = self.network_formal.clone();
+        clone.network_informal = self.network_informal.clone();
+        clone.network = self.network.clone();
+        clone.network_analyzer = NetworkAnalyzer::new();
         clone.degree = self.degree.clone();
         clone.degree_formal = self.degree_formal.clone();
         clone.degree_informal = self.degree_informal.clone();
-
-        // Re-initialize the network analyzer with the clone's network
-        clone.na = network_analyzer::NetworkAnalyzer::new();
-        clone.na.set_network2_analyze(clone.network.clone());
 
         clone.set_outcome();
 
@@ -296,33 +286,25 @@ impl Scenario {
         // Additional links
         let mut num_addition_left:usize = params::NUM_ADDITION;
         if num_addition_left > 0 {
-            self.iterator_dyad_index.shuffle(&mut thread_rng());
+            self.iterator_dyad.shuffle(&mut thread_rng());
             'outer: loop {
-                for &dyad in self.iterator_dyad_index.iter() {
-                    let focal = self.map_dyad2d_index[dyad][0];
-                    let target = self.map_dyad2d_index[dyad][1];
+                for &(focal, target) in &self.iterator_dyad {
                     if !self.network[focal][target]
                         && (self.degree_informal[focal] < params::INFORMAL_MAX_NUM
                             || self.degree_informal[target] < params::INFORMAL_MAX_NUM)
                         && num_addition_left > 0
                     {
+                        self.network[focal][target] = true;
+                        self.network[target][focal] = true;
                         if self.rng.gen::<f64>() < self.enforcement {
                             // Enforced
                             self.network_formal[focal][target] = true;
                             self.network_formal[target][focal] = true;
-                            self.degree_formal[focal] += 1;
-                            self.degree_formal[target] += 1;
                         } else {
                             // Flexible
                             self.network_informal[focal][target] = true;
                             self.network_informal[target][focal] = true;
-                            self.degree_informal[focal] += 1;
-                            self.degree_informal[target] += 1;
                         }
-                        self.network[focal][target] = true;
-                        self.network[target][focal] = true;
-                        self.degree[focal] += 1;
-                        self.degree[target] += 1;
                         num_addition_left -= 1;
                         if num_addition_left == 0 {
                             break 'outer;
@@ -335,7 +317,6 @@ impl Scenario {
             }
         }
 
-        // If Main.params::LIMIT_LEVEL is enabled
         if params::LIMIT_LEVEL {
             for &focal in self.iterator_focal_index.iter() {
                 self.network_limited[focal][focal] = true;
@@ -350,42 +331,26 @@ impl Scenario {
         // println!("\n\ns{} {} <- {}", self.span, self.network.iter().flatten().map(|&x| x as usize).sum::<usize>(), format!("{:?}",self.network));
         // println!("\n\nINFORMAL\ts{} {} <- {}", self.span, self.network_informal.iter().flatten().map(|&x| x as usize).sum::<usize>(), format!("{:?}",self.network_informal));
 
-        self.na = network_analyzer::NetworkAnalyzer::new();
+        self.network_analyzer = network_analyzer::NetworkAnalyzer::new();
 
         
     }
 
-    /// Equivalent to private void initializeEntity().
     fn initialize_entity(&mut self) {
-        // reality and realityBundleID
         for bundle in 0..params::M_OF_BUNDLE {
-            let base_index = bundle * params::M_IN_BUNDLE;
-            let end_index = (bundle + 1) * params::M_IN_BUNDLE;
-            for m in base_index..end_index {
-                if self.rng.gen::<bool>() {
-                    self.reality[m] = true;
-                } else {
-                    self.reality[m] = false;
+            for element in 0..params::M_IN_BUNDLE{
+                self.reality[bundle][element] = self.rng.gen::<bool>();
+                for focal in 0..params::N {
+                    self.belief_of[focal][bundle][element] = self.rng.gen::<bool>();
                 }
-                self.reality_bundle_id[m] = bundle;
-            }
-        }
-
-        // beliefOf
-        for focal in 0..params::N {
-            for m in 0..params::M {
-                self.belief_of[focal][m] = self.rng.gen::<bool>();
             }
         }
     }
 
-    /// Equivalent to private void initializeOutcome().
     fn initialize_outcome(&mut self) {
-        // performance, differenceOf, differenceSum
         for n in 0..params::N {
-            self.performance_usize[n] = 0;
+            self.performance_of[n] = 0;
         }
-
         self.set_performance();
         self.set_outcome();
     }
@@ -407,16 +372,14 @@ impl Scenario {
 
     pub fn set_outcome(&mut self) {
         self.performance_avg = 0.0;
-        self.na.set_network_metrics();
-
-        self.average_path_length = self.na.get_average_path_length();
-        self.network_efficiency = self.na.get_network_efficiency();
-        self.global_clustering_watts_strogatz = self.na.get_global_clustering_watts_strogatz();
-        self.overall_centralization = self.na.get_global_closeness_centralization();
-        self.shortest_path_variance = self.na.get_shortest_path_variance();
-
+        self.network_analyzer.set_network_metrics();
+        self.average_path_length = self.network_analyzer.get_average_path_length();
+        self.network_efficiency = self.network_analyzer.get_network_efficiency();
+        self.global_clustering_watts_strogatz = self.network_analyzer.get_global_clustering_watts_strogatz();
+        self.overall_centralization = self.network_analyzer.get_global_closeness_centralization();
+        self.shortest_path_variance = self.network_analyzer.get_shortest_path_variance();
         for focal in 0..params::N {
-            self.performance_avg += self.performance_usize[focal] as f64;
+            self.performance_avg += self.performance_of[focal] as f64;
         }
         self.performance_avg /= params::M_N as f64;
     }
@@ -445,7 +408,6 @@ impl Scenario {
                 self.preference_score[target][focal] = score;
             }
         }
-
         for &focal in self.iterator_focal_index.iter() {
             self.preference_score[focal][focal] = 0.0;
             for &target in self.iterator_target_index.iter() {
@@ -528,11 +490,9 @@ impl Scenario {
             let mut probability = vec![0.0; params::N_DYAD];
             let mut dyad2_cut_weight_max = f64::MIN;
             // Calculate rewiring weights
-            for &d in self.iterator_dyad_index.iter() {
-                let focal = self.map_dyad2d_index[d][0];
-                let target = self.map_dyad2d_index[d][1];
-                if self.network_informal[focal][target] {
-                    let w = self.get_rewiring_weight(focal, target);
+            for (d, (focal, target)) in self.iterator_dyad.iter().enumerate() {
+                if self.network_informal[*focal][*target] {
+                    let w = self.get_rewiring_weight(*focal, *target);
                     probability[d] = w;
                     if w > dyad2_cut_weight_max {
                         dyad2_cut_weight_max = w;
@@ -541,42 +501,32 @@ impl Scenario {
             }
             // Convert to "largest becomes zero" style
             let mut probability_denominator = 0.0;
-            for &d in self.iterator_dyad_index.iter() {
-                if probability[d] != 0.0 {
-                    probability[d] = dyad2_cut_weight_max - probability[d];
-                    probability_denominator += probability[d];
+            for prob in &mut probability {
+                if *prob != 0.0 {
+                    *prob = dyad2_cut_weight_max - *prob;
+                    probability_denominator += *prob;
                 }
             }
-            
-            // println!("prob {}", format!("{:?}",probability));
-            // println!("SPAN {} LEFT {}", self.span, num_break); // <--- WHY IS THIS DECREASING?
-            // println!("denom {} == {}", probability_denominator, probability.iter().sum::<f64>()); // <--- gradually decreasing... as if degree is decreasing??
-            // println!("degre {}", self.degree_informal.iter().sum::<usize>()); // <--- WHY IS THIS DECREASING? ALSO, IT SHOULD START WITH 125 * 2 AND WE CHANGE 50
-            // If no edges had probability, shuffle and break randomly
             if probability_denominator == 0.0 {
-                self.iterator_dyad_index.shuffle(&mut self.rng);
-                for &d in self.iterator_dyad_index.iter() {
-                    probability[d] = 1.0;
-                }
+                probability.fill(1.0);
                 probability_denominator = 1.0;
+                self.iterator_dyad.shuffle(&mut self.rng);
             }
             // Choose
             let marker = self.rng.gen::<f64>();
             let mut probability_cum = 0.0;
-            for &d in self.iterator_dyad_index.iter() {
+            for (d, (focal, target)) in self.iterator_dyad.iter().enumerate() {
                 if probability[d] != 0.0 {
                     probability_cum += probability[d] / probability_denominator;
                     if probability_cum >= marker {
-                        let focal = self.map_dyad2d_index[d][0];
-                        let target = self.map_dyad2d_index[d][1];
-                        self.network[focal][target] = false;
-                        self.network[target][focal] = false;
-                        self.network_informal[focal][target] = false;
-                        self.network_informal[target][focal] = false;
-                        self.degree[focal] -= 1;
-                        self.degree_informal[focal] -= 1;
-                        self.degree[target] -= 1;
-                        self.degree_informal[target] -= 1;
+                        self.network[*focal][*target] = false;
+                        self.network[*target][*focal] = false;
+                        self.network_informal[*focal][*target] = false;
+                        self.network_informal[*target][*focal] = false;
+                        self.degree[*focal] -= 1;
+                        self.degree_informal[*focal] -= 1;
+                        self.degree[*target] -= 1;
+                        self.degree_informal[*target] -= 1;
                         num_break -= 1;
                         break;
                     }
@@ -591,42 +541,36 @@ impl Scenario {
             let mut probability = vec![0.0; params::N_DYAD];
             let mut probability_denominator = 0.0;
             // Collect probabilities
-            for &d in self.iterator_dyad_index.iter() {
-                let focal = self.map_dyad2d_index[d][0];
-                let target = self.map_dyad2d_index[d][1];
-                if !self.network[focal][target]
-                    && focal != target
-                    && !self.network_limited[focal][target]
-                    && self.degree_informal[focal] < params::INFORMAL_MAX_NUM
-                    && self.degree_informal[target] < params::INFORMAL_MAX_NUM
+            for (d, (focal, target)) in self.iterator_dyad.iter().enumerate() {
+                if !self.network[*focal][*target]
+                    && *focal != *target
+                    && !self.network_limited[*focal][*target]
+                    && self.degree_informal[*focal] < params::INFORMAL_MAX_NUM
+                    && self.degree_informal[*target] < params::INFORMAL_MAX_NUM
                 {
-                    probability[d] = self.get_rewiring_weight(focal, target);
+                    probability[d] = self.get_rewiring_weight(*focal, *target);
                     probability_denominator += probability[d];
                 }
             }
             if probability_denominator == 0.0 {
-                self.iterator_dyad_index.shuffle(&mut self.rng);
-                for &d in self.iterator_dyad_index.iter() {
-                    probability[d] = 1.0;
-                }
+                probability.fill(1.0);
                 probability_denominator = 1.0;
+                self.iterator_dyad.shuffle(&mut self.rng);
             }
             let marker = self.rng.gen::<f64>();
             let mut probability_cum = 0.0;
-            for &d in self.iterator_dyad_index.iter() {
+            for (d, (focal, target)) in self.iterator_dyad.iter().enumerate() {
                 if probability[d] != 0.0 {
                     probability_cum += probability[d] / probability_denominator;
                     if probability_cum >= marker {
-                        let focal = self.map_dyad2d_index[d][0];
-                        let target = self.map_dyad2d_index[d][1];
-                        self.network[focal][target] = true;
-                        self.network[target][focal] = true;
-                        self.network_informal[focal][target] = true;
-                        self.network_informal[target][focal] = true;
-                        self.degree[focal] += 1;
-                        self.degree_informal[focal] += 1;
-                        self.degree[target] += 1;
-                        self.degree_informal[target] += 1;
+                        self.network[*focal][*target] = true;
+                        self.network[*target][*focal] = true;
+                        self.network_informal[*focal][*target] = true;
+                        self.network_informal[*target][*focal] = true;
+                        self.degree[*focal] += 1;
+                        self.degree_informal[*focal] += 1;
+                        self.degree[*target] += 1;
+                        self.degree_informal[*target] += 1;
                         num_formation -= 1;
                         break;
                     }
@@ -639,36 +583,34 @@ impl Scenario {
     fn do_random_rewiring(&mut self, mut num_formation: usize, mut num_break: usize) {
         let mut keep_going = true;
         while keep_going {
-            self.iterator_dyad_index.shuffle(&mut self.rng);
-            for &dyad in self.iterator_dyad_index.iter() {
-                let focal = self.map_dyad2d_index[dyad][0];
-                let target = self.map_dyad2d_index[dyad][1];
-                if self.network_informal[focal][target] && num_break > 0 {
+            self.iterator_dyad.shuffle(&mut self.rng);
+            for (focal, target) in &self.iterator_dyad {
+                if self.network_informal[*focal][*target] && num_break > 0 {
                     // Remove this informal tie
-                    self.network[focal][target] = false;
-                    self.network[target][focal] = false;
-                    self.network_informal[focal][target] = false;
-                    self.network_informal[target][focal] = false;
-                    self.degree[focal] -= 1;
-                    self.degree_informal[focal] -= 1;
-                    self.degree[target] -= 1;
-                    self.degree_informal[target] -= 1;
+                    self.network[*focal][*target] = false;
+                    self.network[*target][*focal] = false;
+                    self.network_informal[*focal][*target] = false;
+                    self.network_informal[*target][*focal] = false;
+                    self.degree[*focal] -= 1;
+                    self.degree_informal[*focal] -= 1;
+                    self.degree[*target] -= 1;
+                    self.degree_informal[*target] -= 1;
                     num_break -= 1;
                 } else if num_formation > 0
-                    && !self.network[focal][target]
+                    && !self.network[*focal][*target]
                     && focal != target
-                    && (self.degree_informal[focal] < params::INFORMAL_MAX_NUM
-                        || self.degree_informal[target] < params::INFORMAL_MAX_NUM)
-                    && !self.network_limited[focal][target]
+                    && (self.degree_informal[*focal] < params::INFORMAL_MAX_NUM
+                        || self.degree_informal[*target] < params::INFORMAL_MAX_NUM)
+                    && !self.network_limited[*focal][*target]
                 {
-                    self.network[focal][target] = true;
-                    self.network[target][focal] = true;
-                    self.network_informal[focal][target] = true;
-                    self.network_informal[target][focal] = true;
-                    self.degree[focal] += 1;
-                    self.degree_informal[focal] += 1;
-                    self.degree[target] += 1;
-                    self.degree_informal[target] += 1;
+                    self.network[*focal][*target] = true;
+                    self.network[*target][*focal] = true;
+                    self.network_informal[*focal][*target] = true;
+                    self.network_informal[*target][*focal] = true;
+                    self.degree[*focal] += 1;
+                    self.degree_informal[*focal] += 1;
+                    self.degree[*target] += 1;
+                    self.degree_informal[*target] += 1;
                     num_formation -= 1;
                 }
                 if num_formation == 0 && num_break == 0 {
@@ -683,97 +625,69 @@ impl Scenario {
         }
     }
 
-    /// Equivalent to void doLearning().
     fn do_learning(&mut self) {
-        // We'll create a temporary buffer of beliefs
-        let mut belief_of_buffer = vec![vec![false; params::M]; params::N];
-        for focal in 0..params::N {
-            // Copy current belief
-            for m in 0..params::M {
-                belief_of_buffer[focal][m] = self.belief_of[focal][m];
+        let mut majority_opinion_count = vec![vec![vec![0; params::M_IN_BUNDLE]; params::M_OF_BUNDLE]; params::N];
+        for (focal, target) in &self.iterator_dyad {
+            let mut superior = usize::MAX;
+            let mut inferior = usize::MAX;
+            if self.network[*focal][*target] {
+                continue;
             }
-            // Tally majority from better-performing neighbors
-            let mut majority_opinion_count = vec![0; params::M];
-            for target in 0..params::N {
-                if self.network[focal][target] && self.performance_usize[target] > self.performance_usize[focal]
-                {
-                    for m in 0..params::M {
-                        if self.belief_of[target][m] {
-                            majority_opinion_count[m] += 1;
-                        } else {
-                            majority_opinion_count[m] -= 1;
-                        }
+            if self.performance_of[*focal] > self.performance_of[*target] {
+                superior = *focal;
+                inferior = *target;
+            }else if self.performance_of[*focal] < self.performance_of[*target]{
+                superior = *target;
+                inferior = *focal;
+            }
+            for bundle in 0..params::M_OF_BUNDLE{
+                for element in 0..params::M_IN_BUNDLE{
+                    if self.belief_of[superior][bundle][element] {
+                        majority_opinion_count[inferior][bundle][element] += 1;
+                    } else {
+                        majority_opinion_count[inferior][bundle][element] -= 1;
                     }
-                }
-            }
-            // Decide which bits to flip
-            for m in 0..params::M {
-                if majority_opinion_count[m] > 0 {
-                    belief_of_buffer[focal][m] = true;
-                } else if majority_opinion_count[m] < 0 {
-                    belief_of_buffer[focal][m] = false;
                 }
             }
         }
-        // Apply with probability params::P_LEARNING
-        for focal in 0..params::N {
-            for m in 0..params::M {
-                if self.belief_of[focal][m] != belief_of_buffer[focal][m] {
-                    if self.rng.gen::<f64>() < params::P_LEARNING {
-                        self.belief_of[focal][m] = belief_of_buffer[focal][m];
+        for focal in 0..params::N{
+            for bundle in 0..params::M_OF_BUNDLE{
+                for element in 0..params::M_IN_BUNDLE{
+                    if ((
+                            (majority_opinion_count[focal][bundle][element] > 0 && self.belief_of[focal][bundle][element]) || 
+                            (majority_opinion_count[focal][bundle][element] < 0 && !self.belief_of[focal][bundle][element])
+                        ) && self.rng.gen::<f64>() < params::P_LEARNING ){
+                        self.belief_of[focal][bundle][element] = !self.belief_of[focal][bundle][element];
                     }
                 }
             }
-            self.set_performance_single(focal);
+            self.set_performance_of(focal);
         }
     }
 
-    /// Equivalent to int getPerformance(int focal).
-    fn get_performance(&self, focal: usize) -> usize {
-        let mut performance_now = 0;
+    fn get_performance_of(&self, focal: usize) -> usize {
         let belief_of_focal = &self.belief_of[focal];
-        for bundle in 0..params::M_OF_BUNDLE {
-            let start = bundle * params::M_IN_BUNDLE;
-            let end = start + params::M_IN_BUNDLE;
-            let mut match_all = true;
-            for m in start..end {
-                if belief_of_focal[m] != self.reality[m] {
-                    match_all = false;
-                    break;
+        let mut performance_of_focal:usize = 0;
+        'bundle: for bundle in 0..params::M_OF_BUNDLE{
+            for element in 0..params::M_IN_BUNDLE{
+                if self.reality[bundle][element] != belief_of_focal[bundle][element] {
+                    continue 'bundle;
                 }
-            }
-            if match_all {
-                // In Java, performanceNow += params::M_IN_BUNDLE
-                performance_now += params::M_IN_BUNDLE as usize;
+                performance_of_focal += params::M_IN_BUNDLE;
             }
         }
-        performance_now
-    }
-
-    /// Equivalent to int getPerformanceS1(int focal).
-    fn get_performance_s1(&self, focal: usize) -> usize {
-        let mut performance_now = 0;
-        for m in 0..params::M {
-            if self.belief_of[focal][m] == self.reality[m] {
-                performance_now += 1;
-            }
-        }
-        performance_now
+        performance_of_focal
     }
 
     /// Equivalent to void setPerformance(int focal).
-    fn set_performance_single(&mut self, focal: usize) {
-        if params::M_IN_BUNDLE == 1 {
-            self.performance_usize[focal] = self.get_performance_s1(focal);
-        } else {
-            self.performance_usize[focal] = self.get_performance(focal);
-        }
+    fn set_performance_of(&mut self, focal: usize) {
+        self.performance_of[focal] = self.get_performance_of(focal);
     }
 
     /// Equivalent to void setPerformance().
     fn set_performance(&mut self) {
         for focal in 0..params::N {
-            self.set_performance_single(focal);
+            self.set_performance_of(focal);
         }
     }
 
@@ -817,23 +731,25 @@ impl Scenario {
 
     /// doTurnover(): each individual leaves with probability turnoverRate; replaced by a new random one.
     pub fn do_turnover(&mut self) {
-        for n in 0..params::N {
+        for focal in 0..params::N {
             if self.rng.gen::<f64>() < self.turnover_rate {
-                // The individual i leaves; fill with new random beliefs
-                for m in 0..params::M {
-                    self.belief_of[n][m] = self.rng.gen::<bool>();
+                for bundle in 0..params::M_OF_BUNDLE {
+                    for element in 0..params::M_IN_BUNDLE{
+                        self.belief_of[focal][bundle][element] = self.rng.gen::<bool>();
+                    }
                 }
-                // Recompute performance for this individual
-                self.set_performance_single(n);
+                self.set_performance_of(focal);
             }
         }
     }
 
     /// doTurbulence(): each dimension of reality is flipped with probability turbulenceRate.
     pub fn do_turbulence(&mut self) {
-        for m in 0..params::M {
-            if self.rng.gen::<f64>() < self.turbulence_rate {
-                self.reality[m] = !self.reality[m];
+        for bundle in 0..params::M_OF_BUNDLE {
+            for element in 0..params::M_IN_BUNDLE{
+                if self.rng.gen::<f64>() < self.turbulence_rate {
+                    self.reality[bundle][element] = !self.reality[bundle][element];
+                }
             }
         }
         self.set_performance();

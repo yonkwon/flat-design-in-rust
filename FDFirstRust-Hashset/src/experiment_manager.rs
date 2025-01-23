@@ -403,6 +403,7 @@ impl ExperimentManager {
             local_spva_12.finalize();
             local_spva_23.finalize();
             local_spva_13.finalize();
+            
             for t in 0..params::TIME {
                 let mut indices_t = indices.clone();
                 indices_t.push(t);

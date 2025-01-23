@@ -532,27 +532,27 @@ impl Scenario {
 
     fn do_learning(&mut self) {
         let mut belief_changes = Vec::new();
-        let mut majority_opinion_count = vec![0; params::M_IN_BUNDLE];
+        let mut majority_opinion_count = vec![vec![0; params::M_IN_BUNDLE]; params::M_OF_BUNDLE];
         for focal in 0..params::N {
             for bundle in 0..params::M_OF_BUNDLE {
-                majority_opinion_count.fill(0);
+                majority_opinion_count[bundle].fill(0);
                 // Tally majority from better-performing neighbors
                 for &target in &self.network[focal] {
                     if self.performance_usize[target] > self.performance_usize[focal] {
                         for element in 0..params::M_IN_BUNDLE {
                             if self.belief_of[target][bundle][element] {
-                                majority_opinion_count[element] += 1;
+                                majority_opinion_count[bundle][element] += 1;
                             } else {
-                                majority_opinion_count[element] -= 1;
+                                majority_opinion_count[bundle][element] -= 1;
                             }
                         }
                     }
                 }
                 // Decide which bits to flip
                 for element in 0..params::M_IN_BUNDLE {
-                    if majority_opinion_count[element] > 0 && !self.belief_of[focal][bundle][element] && self.rng.gen::<f64>() < params::P_LEARNING {
+                    if majority_opinion_count[bundle][element] > 0 && !self.belief_of[focal][bundle][element] && self.rng.gen::<f64>() < params::P_LEARNING {
                         belief_changes.push((focal, bundle, element, true));
-                    } else if majority_opinion_count[element] < 0 && self.belief_of[focal][bundle][element] && self.rng.gen::<f64>() < params::P_LEARNING {
+                    } else if majority_opinion_count[bundle][element] < 0 && self.belief_of[focal][bundle][element] && self.rng.gen::<f64>() < params::P_LEARNING {
                         belief_changes.push((focal, bundle, element, false));
                     }
                 }
