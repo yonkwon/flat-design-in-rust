@@ -639,6 +639,8 @@ impl Scenario {
             }else if self.performance_of[*focal] < self.performance_of[*target]{
                 superior = *target;
                 inferior = *focal;
+            }else {
+                continue;
             }
             for bundle in 0..params::M_OF_BUNDLE{
                 for element in 0..params::M_IN_BUNDLE{
