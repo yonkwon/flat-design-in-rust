@@ -3,7 +3,7 @@ use rayon::prelude::*;
 use crate::scenario::Scenario;
 use crate::params;
 use indicatif::{ProgressBar, ProgressStyle};
-use ndarray::{Array, ArrayD, IxDyn};
+use ndarray::{ArrayD, IxDyn};
 use std::sync::{Arc, Mutex};
 
 /// Manages the experiment, including running the experiment and processing results.
@@ -403,7 +403,6 @@ impl ExperimentManager {
             local_spva_12.finalize();
             local_spva_23.finalize();
             local_spva_13.finalize();
-            
             for t in 0..params::TIME {
                 let mut indices_t = indices.clone();
                 indices_t.push(t);

@@ -3,7 +3,7 @@ use rayon::prelude::*;
 use crate::scenario::Scenario;
 use crate::params;
 use indicatif::{ProgressBar, ProgressStyle};
-use ndarray::{Array, ArrayD, IxDyn};
+use ndarray::{ArrayD, IxDyn};
 use std::sync::{Arc, Mutex};
 
 /// Manages the experiment, including running the experiment and processing results.
