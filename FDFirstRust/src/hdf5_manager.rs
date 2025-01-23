@@ -119,7 +119,6 @@ impl HDF5Manager {
         let para_iteration = hdf5_file.new_dataset_builder().with_data(&[params::ITERATION]).create("para_iteration").unwrap();
         let para_time = hdf5_file.new_dataset_builder().with_data(&[params::TIME]).create("para_time").unwrap();
         let para_p_learning = hdf5_file.new_dataset_builder().with_data(&[params::P_LEARNING]).create("para_p_learning").unwrap();
-        let para_l_mech = hdf5_file.new_dataset_builder().with_data(&[params::LINK_LEVEL]).create("para_l_mech").unwrap();
         let para_n = hdf5_file.new_dataset_builder().with_data(&[params::N]).create("para_n").unwrap();
         let para_m = hdf5_file.new_dataset_builder().with_data(&[params::M]).create("para_m").unwrap();
         let para_informal_init_p = hdf5_file.new_dataset_builder().with_data(&[params::INFORMAL_INITIAL_PROP]).create("para_informal_init_p").unwrap();
@@ -129,6 +128,7 @@ impl HDF5Manager {
         let para_informal_max = hdf5_file.new_dataset_builder().with_data(&[params::INFORMAL_MAX_NUM]).create("para_informal_max").unwrap();
         let para_m_of_bundle = hdf5_file.new_dataset_builder().with_data(&[params::M_OF_BUNDLE]).create("para_m_of_bundle").unwrap();
         let para_m_in_bundle = hdf5_file.new_dataset_builder().with_data(&[params::M_IN_BUNDLE]).create("para_m_in_bundle").unwrap();
+        let para_l_mech = hdf5_file.new_dataset_builder().with_data(&[params::NUM_SOCIAL_DYNAMICS]).create("para_l_mech").unwrap();
         let para_l_span = hdf5_file.new_dataset_builder().with_data(&[params::LENGTH_SPAN]).create("para_l_span").unwrap();
         let para_v_span = hdf5_file.new_dataset_builder().with_data(&params::SPAN).create("para_v_span").unwrap();
         let para_l_enfo = hdf5_file.new_dataset_builder().with_data(&[params::LENGTH_ENFORCEMENT]).create("para_l_enfo").unwrap();

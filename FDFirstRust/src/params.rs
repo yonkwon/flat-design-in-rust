@@ -31,18 +31,18 @@ pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 pub static LENGTH_SPAN: usize = SPAN.len();
 
 // pub static ENFORCEMENT: [f64; 4] = [0.0, 0.5, 0.8, 1.0];
-pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
-// pub static ENFORCEMENT: [f64; 1] = [1.0];
+// pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
+pub static ENFORCEMENT: [f64; 1] = [1.0];
 pub static LENGTH_ENFORCEMENT: usize = ENFORCEMENT.len();
 
-pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
-pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
-// pub static TURBULENCE_RATE: [f64; 1] = [0.0];
-// pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
+// pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
+// pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
+pub static TURBULENCE_RATE: [f64; 1] = [0.0];
+pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
 pub static LENGTH_TURBULENCE: usize = TURBULENCE_RATE.len();
 
-pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
-// pub static TURNOVER_RATE: [f64; 1] = [0.0];
+// pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
+pub static TURNOVER_RATE: [f64; 1] = [0.0];
 pub static LENGTH_TURNOVER: usize = TURNOVER_RATE.len();
 
 pub static P_LEARNING: f64 = 0.2;
@@ -82,7 +82,7 @@ pub static PARAMS_INDEX_COMBINATIONS: OnceCell<Vec<(usize, usize, usize, usize, 
 pub static PARAMS_INDEX_COMBINATIONS_WITH_TIME: OnceCell<Vec<(usize, usize, usize, usize, usize, usize)>> = OnceCell::new();
 pub static PARAM_STRING: Lazy<String> = Lazy::new(|| 
     format!(
-        "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_PTurb{}_ITurb{}_PTurn{}_PLrn{}",
+        "I{}_T{}_Ll{}_Lm{}_PA{}_DM{}_r({}&{})_N{}M({}in{})_S{}E{}Turb{}Turn{}PL{}",
         ITERATION,
         TIME,
         if LINK_LEVEL { "1" } else { "0" },
@@ -94,11 +94,15 @@ pub static PARAM_STRING: Lazy<String> = Lazy::new(||
         N,
         M_IN_BUNDLE,
         M_OF_BUNDLE,
-        SPAN.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        ENFORCEMENT.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURBULENCE_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURBULENCE_INTERVAL.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
-        TURNOVER_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        SPAN.len(),
+        ENFORCEMENT.len(),
+        TURBULENCE_RATE.len(),
+        TURNOVER_RATE.len(),
+        // SPAN.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        // ENFORCEMENT.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        // TURBULENCE_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        // TURBULENCE_INTERVAL.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
+        // TURNOVER_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
         P_LEARNING
     ).to_string());
 
