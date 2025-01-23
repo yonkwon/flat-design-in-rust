@@ -628,37 +628,33 @@ impl Scenario {
     fn do_learning(&mut self) {
         let mut majority_opinion_count = vec![vec![vec![0; params::M_IN_BUNDLE]; params::M_OF_BUNDLE]; params::N];
         for (focal, target) in &self.iterator_dyad {
-            let mut superior = usize::MAX;
-            let mut inferior = usize::MAX;
-            if self.network[*focal][*target] {
+            let (superior, inferior) = if self.network[*focal][*target] && self.performance_of[*focal] != self.performance_of[*target] {
+                if self.performance_of[*focal] > self.performance_of[*target] {
+                    (*focal, *target)
+                } else{
+                    (*target, *focal)
+                }
+            } else {
                 continue;
-            }
-            if self.performance_of[*focal] > self.performance_of[*target] {
-                superior = *focal;
-                inferior = *target;
-            }else if self.performance_of[*focal] < self.performance_of[*target]{
-                superior = *target;
-                inferior = *focal;
-            }else {
-                continue;
-            }
+            };
             for bundle in 0..params::M_OF_BUNDLE{
                 for element in 0..params::M_IN_BUNDLE{
-                    if self.belief_of[superior][bundle][element] {
-                        majority_opinion_count[inferior][bundle][element] += 1;
-                    } else {
-                        majority_opinion_count[inferior][bundle][element] -= 1;
-                    }
+                    majority_opinion_count[inferior][bundle][element] += if self.belief_of[superior][bundle][element] { 1 } else { -1 };
                 }
             }
         }
-        for focal in 0..params::N{
-            for bundle in 0..params::M_OF_BUNDLE{
-                for element in 0..params::M_IN_BUNDLE{
-                    if ((majority_opinion_count[focal][bundle][element] > 0 && self.belief_of[focal][bundle][element]) || 
-                        (majority_opinion_count[focal][bundle][element] < 0 && !self.belief_of[focal][bundle][element])
-                    ) && self.rng.gen::<f64>() < params::P_LEARNING {
-                        self.belief_of[focal][bundle][element] = !self.belief_of[focal][bundle][element];
+        for focal in 0..params::N {
+            for bundle in 0..params::M_OF_BUNDLE {
+                let beliefs = &mut self.belief_of[focal][bundle];
+                let counts = &majority_opinion_count[focal][bundle];
+                for element in 0..params::M_IN_BUNDLE {
+                    let count = counts[element];
+                    let belief = beliefs[element];
+                    if (count > 0 && belief) || (count < 0 && !belief) || count == 0 {
+                        continue;
+                    }
+                    if self.rng.gen::<f64>() < params::P_LEARNING {
+                        beliefs[element] = !belief;
                     }
                 }
             }
