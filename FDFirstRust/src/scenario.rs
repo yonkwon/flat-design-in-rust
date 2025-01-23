@@ -653,10 +653,9 @@ impl Scenario {
         for focal in 0..params::N{
             for bundle in 0..params::M_OF_BUNDLE{
                 for element in 0..params::M_IN_BUNDLE{
-                    if ((
-                            (majority_opinion_count[focal][bundle][element] > 0 && self.belief_of[focal][bundle][element]) || 
-                            (majority_opinion_count[focal][bundle][element] < 0 && !self.belief_of[focal][bundle][element])
-                        ) && self.rng.gen::<f64>() < params::P_LEARNING ){
+                    if ((majority_opinion_count[focal][bundle][element] > 0 && self.belief_of[focal][bundle][element]) || 
+                        (majority_opinion_count[focal][bundle][element] < 0 && !self.belief_of[focal][bundle][element])
+                    ) && self.rng.gen::<f64>() < params::P_LEARNING {
                         self.belief_of[focal][bundle][element] = !self.belief_of[focal][bundle][element];
                     }
                 }
