@@ -465,7 +465,6 @@ impl ExperimentManager {
                 
                 self.r_spva_avg.lock().unwrap()[&ix_dyn] = local_spva.avg[t];
                 self.r_spva_std.lock().unwrap()[&ix_dyn] = local_spva.std[t];
-                println!("{}", local_spva.avg[t]);
 
                 self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] = local_spva_rr.avg[t];
                 self.r_spva_rr_std.lock().unwrap()[&ix_dyn] = local_spva_rr.std[t];

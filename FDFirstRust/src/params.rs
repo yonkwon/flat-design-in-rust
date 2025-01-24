@@ -21,7 +21,8 @@ pub static TIME: usize = 501;
 
 pub static INFORMAL_MAX_NUM: isize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
-pub static INFORMAL_REWIRING_PROP: f64 = 0.2;
+// pub static INFORMAL_REWIRING_PROP: f64 = 0.2;
+pub static INFORMAL_REWIRING_PROP: f64 = 0.1;
 
 pub static N: usize = 100;
 pub static M_OF_BUNDLE: usize = 20;
