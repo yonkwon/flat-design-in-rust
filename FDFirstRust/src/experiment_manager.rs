@@ -1,14 +1,13 @@
-// For parallel iteration
 use rayon::prelude::*; 
-use crate::scenario::Scenario;
-use crate::params;
-use indicatif::{ProgressBar, ProgressStyle};
 use ndarray::{ArrayD, IxDyn};
 use std::sync::{Arc, Mutex};
+use indicatif::{ProgressBar, ProgressStyle};
+use chrono::Local;
+use crate::params;
+use crate::scenario::Scenario;
 
 /// Manages the experiment, including running the experiment and processing results.
 /// Modify as needed based on your experiment design.
-
 pub struct ExperimentManager {
     pub r_perf_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
     pub r_perf_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
@@ -200,7 +199,8 @@ impl ExperimentManager {
                 .progress_chars("#>-"),
         );
         println!(
-            "Initiated: Running Experiments for {} combinations with {} iterations each",
+            "{}\tInitiated: Running Experiments for {} combinations with {} iterations each",
+            Local::now().format("%Y-%m-%d][%H:%M:%S"),
             length_combination / params::ITERATION,
             params::ITERATION
         );
@@ -551,7 +551,8 @@ impl ExperimentManager {
                         .progress_chars("#>-"),
                 );
                 println!(
-                    "Initiated: Sampling Network in *.csv for {} combinations",
+                    "{}\tInitiated: Sampling Network in *.csv for {} combinations",
+                    Local::now().format("%Y-%m-%d][%H:%M:%S"),
                     length_combination
                 );
                 
