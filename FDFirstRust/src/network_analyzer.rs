@@ -3,7 +3,6 @@ use std::collections::VecDeque;
 use std::{f64, usize};
 
 pub struct NetworkAnalyzer {
-    pub network2_analyze: Vec<Vec<bool>>,
     pub shortest_path: Vec<Vec<isize>>, // declared as an signed integer to allow for -1 as a procedural marker.
 
     adj_list: Vec<Vec<usize>>,
@@ -38,16 +37,9 @@ impl NetworkAnalyzer {
     pub fn get_shortest_path_variance(&self) -> f64 {
         self.shortest_path_variance
     }
-
-    // ----------------------------------------------------------------
-    // CONSTRUCTORS (equivalent to Java constructors)
-    // ----------------------------------------------------------------
-
-    /// Equivalent to the Java `public NetworkAnalyzer() { }`
     /// Initializes empty fields.
     pub fn new() -> Self {
         NetworkAnalyzer {
-            network2_analyze: vec![vec![false; params::N]; params::N],
             shortest_path: vec![vec![-1; params::N]; params::N],
             adj_list: vec![Vec::new(); params::N],
             average_path_length: 0.0,
@@ -58,18 +50,12 @@ impl NetworkAnalyzer {
         }
     }
 
-    pub fn set_network2_analyze(&mut self, network2_analyze: Vec<Vec<bool>>) {
-        self.network2_analyze = network2_analyze;
-    }
-
-    /// Equivalent to `public void setNetworkMetrics()`
     /// The main entry point for computing metrics:
     /// 1) Build adjacency list
     /// 2) Compute shortest paths & betweenness
     /// 3) Compute average path length, network efficiency, closeness, clustering, etc.
-    pub fn set_network_metrics(&mut self) {
-        self.set_adj_list();
-        self.set_shortest_path();
+    pub fn set_network_metrics(&mut self, network2_analyze: &Vec<Vec<bool>>) {
+        self.set_shortest_path(&network2_analyze);
 
         // In Java: double diameter = Double.MIN_VALUE;
         // `Double.MIN_VALUE` in Java is the smallest positive number (~1e-308).
@@ -127,7 +113,7 @@ impl NetworkAnalyzer {
 
                 for &j in &self.adj_list[i] {
                     for &k in &self.adj_list[i] {
-                        if j < k && self.network2_analyze[j][k] {
+                        if j < k && network2_analyze[j][k] {
                             local_clustering_numerator += 1;
                         }
                     }
@@ -145,47 +131,27 @@ impl NetworkAnalyzer {
         }
 
         // Final normalization
-        // averagePathLength /= (double) Main.params::N_DYAD;
         self.average_path_length /= params::N_DYAD as f64;
-
-        // networkEfficiency /= (double) Main.params::N_DYAD;
         self.network_efficiency /= params::N_DYAD as f64;
-
-        // globalClosenessCentralization += closenessCentralityMax * Main.N;
-        // globalClosenessCentralization /= params::CLOSENESS_CENTRALIZATION_DENOMINATOR;
         self.global_closeness_centralization += closeness_centrality_max * (params::N as f64);
         self.global_closeness_centralization /= params::CLOSENESS_CENTRALIZATION_DENOMINATOR;
-
-        // globalClusteringWattsStrogatz /= Main.N;
         self.global_clustering_watts_strogatz /= params::N as f64;
-
-        // shortestPathVariance /= Main.N;
         self.shortest_path_variance /= params::N as f64;
-
-        // Java: adjList = null;
-        // In Rust, we can simply clear it if desired:
+    
         self.adj_list.clear();
     }
 
-    // ----------------------------------------------------------------
-    // PRIVATE HELPER METHODS (equivalent to Java private methods)
-    // ----------------------------------------------------------------
-
-    /// Equivalent to `private void setAdjList()`.
-    fn set_adj_list(&mut self) {
+    /// Equivalent to `private void setShortestPathAndBetweennessCentrality()`.
+    fn set_shortest_path(&mut self, network2_analyze: &Vec<Vec<bool>>) {
+        self.shortest_path = vec![vec![-1; params::N]; params::N]; // Use -1 for unvisited
         self.adj_list = vec![Vec::new(); params::N];
         for i in 0..params::N {
             for j in 0..params::N {
-                if self.network2_analyze[i][j] {
+                if network2_analyze[i][j] {
                     self.adj_list[i].push(j);
                 }
             }
         }
-    }
-
-    /// Equivalent to `private void setShortestPathAndBetweennessCentrality()`.
-    fn set_shortest_path(&mut self) {
-        self.shortest_path = vec![vec![-1; params::N]; params::N]; // Use -1 for unvisited
     
         for s in 0..params::N {
             let mut stack: Vec<usize> = Vec::new();

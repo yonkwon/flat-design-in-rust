@@ -12,16 +12,15 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 100;
+pub static ITERATION: usize = 102;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
 pub static TIME: usize = 501;
 
-pub static INFORMAL_MAX_NUM: isize = 5;
+pub static INFORMAL_MAX_NUM: usize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
-// pub static INFORMAL_REWIRING_PROP: f64 = 0.2;
 pub static INFORMAL_REWIRING_PROP: f64 = 0.1;
 
 pub static N: usize = 100;
@@ -32,18 +31,18 @@ pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 pub static LENGTH_SPAN: usize = SPAN.len();
 
 // pub static ENFORCEMENT: [f64; 4] = [0.0, 0.5, 0.8, 1.0];
-// pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
-pub static ENFORCEMENT: [f64; 1] = [1.0];
+pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
+// pub static ENFORCEMENT: [f64; 1] = [1.0];
 pub static LENGTH_ENFORCEMENT: usize = ENFORCEMENT.len();
 
-// pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
-// pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
-pub static TURBULENCE_RATE: [f64; 1] = [0.0];
-pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
+pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
+pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
+// pub static TURBULENCE_RATE: [f64; 1] = [0.0];
+// pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
 pub static LENGTH_TURBULENCE: usize = TURBULENCE_RATE.len();
 
-// pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
-pub static TURNOVER_RATE: [f64; 1] = [0.0];
+pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
+// pub static TURNOVER_RATE: [f64; 1] = [0.0];
 pub static LENGTH_TURNOVER: usize = TURNOVER_RATE.len();
 
 pub static P_LEARNING: f64 = 0.2;
@@ -68,7 +67,6 @@ pub static CLUSTERING_COEFFICIENT_RANDOM_NO_SOCIAL_DYNAMICS: f64 = (N - 1) as f6
 pub static AVERAGE_PATH_LENGTH_RANDOM: Lazy<f64> = Lazy::new(|| (N as f64).ln() / (CLUSTERING_COEFFICIENT_RANDOM * (N-1) as f64).ln());
 pub static AVERAGE_PATH_LENGTH_RANDOM_NO_SOCIAL_DYNAMICS: Lazy<f64> = Lazy::new(|| (N as f64).ln() / (CLUSTERING_COEFFICIENT_RANDOM_NO_SOCIAL_DYNAMICS * (N-1) as f64).ln());
 
-//Will be printed in the reverse order
 pub static RESULT_SHAPE: [usize; 6] = [
     NUM_SOCIAL_DYNAMICS,
     LENGTH_SPAN as usize,
@@ -78,12 +76,12 @@ pub static RESULT_SHAPE: [usize; 6] = [
     TIME,
 ];
 
-
 pub static PARAMS_INDEX_COMBINATIONS: OnceCell<Vec<(usize, usize, usize, usize, usize)>> = OnceCell::new();
 pub static PARAMS_INDEX_COMBINATIONS_WITH_TIME: OnceCell<Vec<(usize, usize, usize, usize, usize, usize)>> = OnceCell::new();
 pub static PARAM_STRING: Lazy<String> = Lazy::new(|| 
     format!(
-        "I{}_T{}_Ll{}_Lm{}_PA{}_DM{}_r({}&{})_N{}M({}in{})_S{}E{}Turb{}Turn{}PL{}",
+        // "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_PTurb{}_ITurb{}_PTurn{}_PLrn{}",
+        "I{}_T{}_LnkLv{}_LmtLv{}_PAdd{}_DMax{}_r0{}_rt{}_N{}_M({}in{})_S{}_E{}_Turb{}_Turn{}_PLrn{}",
         ITERATION,
         TIME,
         if LINK_LEVEL { "1" } else { "0" },
@@ -98,7 +96,7 @@ pub static PARAM_STRING: Lazy<String> = Lazy::new(||
         SPAN.len(),
         ENFORCEMENT.len(),
         TURBULENCE_RATE.len(),
-        TURNOVER_RATE.len(),
+        TURBULENCE_INTERVAL.len(),
         // SPAN.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
         // ENFORCEMENT.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),
         // TURBULENCE_RATE.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("&"),

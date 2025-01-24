@@ -1,0 +1,1621 @@
+---
+title: "DATTGrapher"
+format: pdf
+editor: visual
+---
+
+# Setup & Data Import
+```{r setup, include=FALSE}
+rm(list = ls()) # Cleaning R environment
+setwd(dirname(rstudioapi::getSourceEditorContext()$path)) # Set SRC DIR as WD
+file <- file.choose(new = T)
+if (!require("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager") 
+  BiocManager::install("rhdf5")
+}
+library(rhdf5)
+library(tidyverse) # tibble (dataframe)
+library(ggplot2) # Plot
+library(tidyr) # gather()
+library(scales) # pretty_breaks()
+library(viridis)
+library(ggpp) # Label text position
+library(ggsci)
+library(ggh4x) # facet nested
+library(ggpp) # geom_label enhanced
+library(geomtextpath) # text + arrow
+```
+
+## Data Import & User Config
+
+```{r import}
+data <- H5Fopen(file)
+fig_id <- paste0(
+  basename(file)
+)
+
+fig_dpi <- 600
+label_size <- 10
+tick_label_size <- 8
+
+label_mech <- c(
+  "No Social Dynamics (Baseline)",
+  "Counterfactual (Random)",
+  "Network Closure",
+  "Preferential Attachment"
+)
+label_mech <- factor(
+  label_mech,
+  levels = label_mech
+)
+
+label_mech_abc <- paste0("(", LETTERS[1:length(label_mech)], ") ", label_mech)
+label_mech_abc <- factor(label_mech_abc, levels = label_mech_abc)
+
+label_scenario <- c(
+  "No Social Dynamics (Baseline)",
+  "Social Dynamics",
+  "Counterfactual (Random)"
+)
+label_scenario <- factor(
+  label_scenario,
+  levels = label_scenario
+)
+
+label_scenario_iii <- c(
+  "No Social Dynamics (Baseline)",
+  "Social Dynamics",
+  "Counterfactual (Random)"
+)
+label_scenario_iii <- factor(
+  label_scenario_iii,
+  levels = label_scenario_iii
+)
+```
+
+# Line Plots
+
+## Main Relationship Between Span of Control and Organizational Learning Effectiveness
+```{r fig}
+label_size <- 10
+tick_label_size <- 8
+
+# set_fig_width = 9
+# set_fig_height = 3.5
+set_fig_width <- 6
+set_fig_height <- 3
+# set_fig_ylim = c(.1, .7)
+
+set_fig_mech <- 1:data$para_l_mech
+set_fig_span <- 1:data$para_l_span
+
+set_fig_enforcement <- data$para_l_enfo
+# set_fig_enforcement <- 1
+
+set_fig_turbulence <- 1
+set_fig_turnover <- 1
+
+# set_fig_t <- 3
+set_fig_t <- data$para_time
+
+x_label <- expression("Span of Control (S)")
+x_tick_label <- data$para_v_span
+x_tick_label <- as.character(x_tick_label)
+x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_label)], "\n\u2190 Tall")
+x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
+
+y_label <- "Organizational Performance"
+y_label <- "Org. Learning Effectiveness"
+y_value_sc <- aperm(data$r_perf_avg)
+y_value_nr <- aperm(data$r_perf_nr_avg)
+y_value_rr <- aperm(data$r_perf_rr_avg)
+
+label_mech_abc <- c(
+  "(A) Network Closure",
+  "(B) Preferential Attachment"
+)
+label_mech_abc <- factor(
+  label_mech_abc,
+  levels = label_mech_abc
+)
+
+
+label_scenario <- c(
+  "No Social Dynamics (Baseline)",
+  "Social Dynamics",
+  "Counterfactual (Random)"
+)
+label_scenario <- factor(
+  label_scenario,
+  levels = label_scenario
+)
+
+
+label_scenario_iii <- paste0("(", tolower(as.roman(1:length(label_scenario))), ") ", label_scenario)
+label_scenario_iii <- factor(label_scenario_iii, levels = label_scenario_iii)
+
+df_fig <- data.frame()
+panel_index <- 0
+for (mech in set_fig_mech) {
+  df_next <- data.frame(
+    mechanism = label_mech_abc[mech],
+    span = data$para_v_span[set_fig_span],
+    scenario = label_scenario_iii[1],
+    outcome = y_value_nr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    span_opt = data$para_v_span[which.max(y_value_nr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t])],
+    y_opt = y_value_nr[mech, which.max(y_value_nr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+  )
+  df_fig <- rbind(df_fig, df_next)
+
+  df_next <- data.frame(
+    mechanism = label_mech_abc[mech],
+    span = data$para_v_span[set_fig_span],
+    scenario = label_scenario_iii[2],
+    outcome = y_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    span_opt = data$para_v_span[which.max(y_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t])],
+    y_opt = y_value_sc[mech, which.max(y_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+  )
+  df_fig <- rbind(df_fig, df_next)
+
+  df_next <- data.frame(
+    mechanism = label_mech_abc[mech],
+    span = data$para_v_span[set_fig_span],
+    scenario = label_scenario_iii[3],
+    outcome = y_value_rr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    span_opt = data$para_v_span[which.max(y_value_rr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t])],
+    y_opt = y_value_rr[mech, which.max(y_value_rr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+  )
+  df_fig <- rbind(df_fig, df_next)
+}
+
+axes <- aes(
+  x = span,
+  y = outcome,
+  color = scenario,
+  shape = scenario,
+  linetype = scenario
+)
+
+# df_fig[mechf_fig$scenario == label_scenario[1],]$outcome = NA
+# df_fig[mechf_fig$scenario == label_scenario[1],]$y_opt = NA
+# df_fig[mechf_fig$scenario == label_scenario[2],]$outcome = NA
+# df_fig[mechf_fig$scenario == label_scenario[2],]$y_opt = NA
+
+fig <- ggplot(data = df_fig, mapping = axes) +
+  # facet_wrap(. ~ mechanism, scales = "free") +
+  facet_wrap(. ~ mechanism) +
+  geom_line(alpha = .9, size = .5) +
+  geom_point(size = 1) +
+  geom_point(
+    aes(x = span_opt, y = y_opt),
+    size = 2,
+    shape = 8,
+    show_guide = F
+  ) +
+  scale_color_manual(
+    breaks = label_scenario_iii,
+    values = c("#282728", "#C5050C", "#00B050")
+  ) +
+  scale_shape_manual(breaks = label_scenario_iii, values = c(4, 1, 16)) +
+  scale_linetype_manual(
+    breaks = label_scenario_iii,
+    values = c("dashed", "solid", "dotted")
+  ) +
+  scale_x_discrete(limits = data$para_v_span[set_fig_span], labels = x_tick_label[set_fig_span]) +
+  scale_y_continuous(expand = c(0, .02)) +
+  labs(x = x_label, y = y_label) +
+  theme_bw() +
+  theme(
+    text = element_text(size = label_size, color = "black"),
+    axis.title = element_text(size = label_size, color = "black"),
+    axis.text = element_text(size = tick_label_size, color = "black"),
+    axis.text.x = element_text(color = "black"),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(color = "black"),
+    panel.spacing = unit(1, "lines"),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+ggsave(
+  paste0(
+    fig_id,
+    "_",
+    "fig_",
+    y_label,
+    "span",
+    paste0(data$para_v_span[set_fig_span], collapse = ","),
+    "e",
+    data$para_v_enfo[set_fig_enforcement],
+    "t",
+    set_fig_t,
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+
+# df_fig[8,]$outcome - df_fig[14,]$outcome
+# df_fig[15,]$outcome - df_fig[21,]$outcome
+# df_fig[29,]$outcome - df_fig[35,]$outcome
+# df_fig[36,]$outcome - df_fig[42,]$outcome
+```
+
+## Decomposition
+
+```{r fig}
+# label_size <- 12
+# tick_label_size <- 10
+
+# set_fig_width = 9
+# set_fig_height = 3.5
+set_fig_width <- 6
+set_fig_height <- 4
+# set_fig_ylim = c(.1, .7)
+
+set_fig_mech <- 1:data$para_l_mech
+set_fig_span <- 1:data$para_l_span
+
+set_fig_enforcement <- data$para_l_enfo
+# set_fig_enforcement <- 3
+
+# set_fig_t <- 25
+set_fig_t <- data$para_time
+
+x_label <- expression("Span of Control (S)")
+x_tick_label <- data$para_v_span
+x_tick_label <- as.character(x_tick_label)
+x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_label)], "\n\u2190 Tall")
+x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
+
+y_label <- "Organizational Performance"
+y_label <- "Organizational Learning Effectiveness\n(Relative to No Social Dynamics)"
+y_value_sc <- aperm(data$r_perf_avg - data$r_perf_nr_avg)
+y_value_rr <- aperm(data$r_perf_rr_avg - data$r_perf_nr_avg)
+
+
+label_mech_abc <- c(
+  "(A) Network Closure",
+  "(B) Preferential Attachment"
+)
+label_mech_abc <- factor(
+  label_mech_abc,
+  levels = label_mech_abc
+)
+
+label_scenario <- c(
+  "Total Effect (Common + Distinct)",
+  "Common Effect",
+  "Distinct Effect"
+)
+label_scenario <- factor(
+  label_scenario,
+  levels = label_scenario
+)
+label_scenario_iii <- paste0("(", tolower(as.roman(1:length(label_scenario))), ") ", label_scenario)
+label_scenario_iii <- factor(label_scenario_iii, levels = label_scenario_iii)
+
+df_fig <- data.frame()
+panel_index <- 0
+for (mech in set_fig_mech) {
+  df_next <- data.frame(
+    mechanism = label_mech_abc[mech],
+    span = data$para_v_span[set_fig_span],
+    outcome1 = y_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    outcome2 = y_value_rr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    span_opt = data$para_v_span[which.max(y_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t])],
+    y_opt = y_value_sc[mech, which.max(y_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+  )
+  df_fig <- rbind(df_fig, df_next)
+}
+
+fig <- ggplot(data = df_fig, mapping = aes(x = span)) +
+  geom_ribbon(aes(ymin = pmin(outcome1, outcome2), ymax = pmax(outcome1, outcome2), fill = label_scenario_iii[3]), alpha = 0.1) +
+  geom_point(mapping = aes(y = outcome1, color = label_scenario_iii[1]), shape = 84, size = 2) +
+  geom_point(mapping = aes(y = outcome2, color = label_scenario_iii[2]), shape = 67, size = 2) +
+  geom_line(mapping = aes(y = outcome1, color = label_scenario_iii[1]), linetype = "solid", alpha = .9, size = .5) +
+  geom_line(mapping = aes(y = outcome2, color = label_scenario_iii[2]), linetype = "dashed", alpha = .9, size = .5) +
+  facet_wrap(~mechanism) +
+  scale_color_manual(breaks = label_scenario_iii, values = c("#C5050C", "#006400")) +
+  scale_shape_manual(breaks = label_scenario_iii, values = c(84, 67)) +
+  scale_fill_manual(breaks = label_scenario_iii, values = rep("black", 3)) +
+  scale_x_discrete(limits = data$para_v_span[set_fig_span], labels = x_tick_label[set_fig_span]) +
+  scale_y_continuous(expand = c(0, .02)) +
+  labs(x = x_label, y = y_label) +
+  theme_bw() +
+  theme(
+    text = element_text(size = label_size, color = "black"),
+    axis.title = element_text(size = label_size, color = "black"),
+    axis.text = element_text(size = tick_label_size, color = "black"),
+    axis.text.x = element_text(color = "black"),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(size = label_size, color = "black"),
+    panel.spacing = unit(1, "lines"),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+ggsave(
+  paste0(
+    fig_id,
+    "_",
+    "fig_decomp_",
+    "span",
+    paste0(data$para_v_span[set_fig_span], collapse = ","),
+    "e",
+    data$para_v_enfo[set_fig_enforcement],
+    "t",
+    set_fig_t,
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+
+df_fig[8, ]$outcome - df_fig[14, ]$outcome
+df_fig[15, ]$outcome - df_fig[21, ]$outcome
+df_fig[29, ]$outcome - df_fig[35, ]$outcome
+df_fig[36, ]$outcome - df_fig[42, ]$outcome
+```
+
+## Longitudinal Relationship
+
+```{r fig}
+set_fig_width <- 6.5
+set_fig_height <- 4
+set_fig_ylim <- c(-.1, .9)
+
+set_fig_t_end <- data$para_time
+
+set_fig_span <- c(1, data$para_l_span)
+set_fig_enforcement <- data$para_l_enfo
+set_fig_turbulence <- 1
+set_fig_turnover <- 1
+
+set_fig_t <- 1:set_fig_t_end
+x_label <- expression(Time ~ Period ~ (italic(t)))
+
+y_label <- "Organizational Performance"
+y_value_sc <- aperm(data$r_perf_avg)
+y_value_nr <- aperm(data$r_perf_nr_avg)
+y_value_rr <- aperm(data$r_perf_rr_avg)
+
+label_span <- c(
+  paste0("S=", data$para_v_span[set_fig_span[1]], " (Tall)"),
+  paste0("S=", data$para_v_span[set_fig_span[2]], " (Flat)")
+)
+label_span <- factor(label_span, levels = label_span)
+
+label_combined <- c(
+  paste0("(i) ", label_scenario[1], "; ", label_span[1]),
+  paste0("(ii) ", label_scenario[1], "; ", label_span[2]),
+  paste0("(iii) ", label_scenario[2], "; ", label_span[1]),
+  paste0("(iv) ", label_scenario[2], "; ", label_span[2])
+)
+label_combined <- factor(label_combined, levels = label_combined)
+
+label_mech_abc <- paste0("(", LETTERS[1:2], ") ", label_mech[3:4])
+label_mech_abc <- factor(label_mech_abc, levels = label_mech_abc)
+
+df_fig <- data.frame()
+for (mech in 1:data$para_l_mech) {
+  for (s in 1:2) {
+    df_next <- data.frame(
+      label = label_combined[s],
+      mechanism = label_mech_abc[mech],
+      span = label_span[s],
+      scenario = label_scenario[3],
+      time = set_fig_t,
+      outcome = y_value_nr[mech, set_fig_span[s], set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+    )
+    df_fig <- rbind(df_fig, df_next)
+
+    df_next <- data.frame(
+      label = label_combined[2 + s],
+      mechanism = label_mech_abc[mech],
+      span = label_span[s],
+      scenario = label_scenario[1],
+      time = set_fig_t,
+      outcome = y_value_sc[mech, set_fig_span[s], set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+    )
+    df_fig <- rbind(df_fig, df_next)
+  }
+}
+
+axes <- aes(
+  x = time,
+  y = outcome,
+  color = label,
+  shape = label,
+  linetype = label
+)
+
+df_fig$time <- df_fig$time - 1
+df_fig_point <- df_fig[df_fig$time %% 100 == 0, ]
+
+fig <- ggplot(data = df_fig, mapping = axes) +
+  # facet_grid(.~mechanism, labeller = label_parsed) +
+  facet_nested(. ~ mechanism) +
+  # geom_text_npc(aes(label = panel_label, npcx='right', npcy='bottom'), size=4, colour='black') +
+  geom_line(alpha = .9, size = .5) +
+  geom_point(data = df_fig_point, size = 1.5) +
+  scale_color_manual(values = c("#585252", "#585252", "#E81727", "#E81727")) +
+  scale_shape_manual(values = c(2, 6, 2, 6)) +
+  scale_linetype_manual(values = c("dashed", "solid", "dashed", "solid")) +
+  scale_x_continuous(expand = c(0, .02)) +
+  scale_y_continuous(expand = c(0, .02)) +
+  labs(x = x_label, y = y_label) +
+  guides(color = guide_legend(nrow = 2, byrow = T)) +
+  theme_bw() +
+  theme(
+    text = element_text( # family = windowsFonts()$serif,
+      size = label_size, color = "black"
+    ),
+    axis.title = element_text(size = label_size, color = "black"),
+    axis.text = element_text(size = tick_label_size, color = "black"),
+    axis.text.x = element_text(size = tick_label_size * .9, color = "black"),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(color = "black"),
+    panel.spacing = unit(1, "lines"),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+ggsave(
+  paste0(
+    fig_id,
+    "_",
+    "fig_",
+    y_label,
+    "t",
+    set_fig_t_end,
+    "turb",
+    data$para_v_turb_r[set_fig_turbulence], 
+    "@", data$para_v_turb_i[set_fig_turbulence], 
+    "turn",
+    data$para_v_turn[set_fig_turnover], 
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+```
+
+## Short versus Long Term Effect
+
+```{r fig}
+# label_size <- 12
+# tick_label_size <- 10
+
+# set_fig_width = 9
+# set_fig_height = 3.5
+set_fig_width <- 6
+set_fig_height <- 3
+# set_fig_ylim = c(.1, .7)
+
+set_fig_mech <- 1:data$para_l_mech
+set_fig_span <- 1:data$para_l_span
+
+set_fig_enforcement <- 1
+set_fig_t_short <- 25
+set_fig_t_long <- 100
+
+x_label <- expression("Span of Control (S)")
+x_tick_label <- data$para_v_span
+x_tick_label <- as.character(x_tick_label)
+x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_label)], "\n\u2190 Tall")
+x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
+
+y_label <- "Organizational Performance"
+y_label <- "Org. Learning Effectiveness"
+y_value_sc <- aperm(data$r_perf_avg)
+y_value_nr <- aperm(data$r_perf_nr_avg)
+y_value_rr <- aperm(data$r_perf_rr_avg)
+
+
+label_panel <- c(
+  bquote("(A) Short-Term (" * italic(t) == .(set_fig_t_short) * ")"),
+  bquote("(B) Long-Term (" * italic(t) == .(set_fig_t_long) * ")")
+)
+label_panel <- factor(
+  label_panel,
+  levels = label_panel
+)
+
+label_legend <- c(
+  "(i) Common Counterfactual",
+  "(ii) Network Closure",
+  "(iii) Preferential Attachment"
+)
+label_legend <- factor(
+  label_legend,
+  levels = label_legend
+)
+
+df_fig <- data.frame()
+
+panel <- label_panel[1]
+time <- set_fig_t_short
+df_next <- data.frame(
+  time = panel,
+  mech = label_legend[1],
+  span = data$para_v_span[set_fig_span],
+  outcome = y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time],
+  span_opt = data$para_v_span[which.max(y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])],
+  y_opt = y_value_nr[1, which.max(y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+)
+df_fig <- rbind(df_fig, df_next)
+df_next$mech <- label_legend[2]
+df_next$outcome <- y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_next$span_opt <- data$para_v_span[which.max(y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])]
+df_next$y_opt <- y_value_sc[1, which.max(y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_fig <- rbind(df_fig, df_next)
+df_next$mech <- label_legend[3]
+df_next$outcome <- y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_next$span_opt <- data$para_v_span[which.max(y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])]
+df_next$y_opt <- y_value_sc[2, which.max(y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_fig <- rbind(df_fig, df_next)
+
+panel <- label_panel[2]
+time <- set_fig_t_long
+df_next <- data.frame(
+  time = panel,
+  mech = label_legend[1],
+  span = data$para_v_span[set_fig_span],
+  outcome = y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time],
+  span_opt = data$para_v_span[which.max(y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])],
+  y_opt = y_value_nr[1, which.max(y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+)
+df_fig <- rbind(df_fig, df_next)
+df_next$mech <- label_legend[2]
+df_next$outcome <- y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_next$span_opt <- data$para_v_span[which.max(y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])]
+df_next$y_opt <- y_value_sc[1, which.max(y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_fig <- rbind(df_fig, df_next)
+df_next$mech <- label_legend[3]
+df_next$outcome <- y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_next$span_opt <- data$para_v_span[which.max(y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])]
+df_next$y_opt <- y_value_sc[2, which.max(y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_fig <- rbind(df_fig, df_next)
+
+axes <- aes(
+  x = span,
+  y = outcome,
+  color = mech,
+  shape = mech,
+  linetype = mech
+)
+
+fig <- ggplot(data = df_fig, mapping = axes) +
+  facet_wrap(. ~ time, scales = "free", labeller = label_parsed) +
+  geom_line(alpha = .9, size = .5) +
+  geom_point(size = 2) +
+  geom_point(
+    aes(x = span_opt, y = y_opt),
+    size = 2,
+    shape = 8,
+    show_guide = F
+  ) +
+  scale_color_manual(
+    breaks = label_legend,
+    values = c("#006400", "#E81727", "#FF7F0E")
+  ) +
+  scale_shape_manual(breaks = label_legend, values = c(67, 78, 80)) +
+  scale_linetype_manual(
+    breaks = label_legend,
+    values = c("dashed", "solid", "solid")
+  ) +
+  scale_x_discrete(limits = data$para_v_span[set_fig_span], labels = x_tick_label[set_fig_span]) +
+  scale_y_continuous(expand = c(0, .02)) +
+  labs(x = x_label, y = y_label) +
+  theme_bw() +
+  theme(
+    text = element_text(size = label_size, color = "black"),
+    axis.title = element_text(size = label_size, color = "black"),
+    axis.text = element_text(size = tick_label_size, color = "black"),
+    axis.text.x = element_text(color = "black"),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(color = "black"),
+    panel.spacing = unit(1, "lines"),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+ggsave(
+  paste0(
+    fig_id,
+    "_",
+    "fig_",
+    y_label,
+    "span",
+    paste0(data$para_v_span[set_fig_span], collapse = ","),
+    "e",
+    data$para_v_enfo[set_fig_enforcement],
+    "t",
+    set_fig_t_short, "-", set_fig_t_long,
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+```
+
+## Short versus Long Term Effect (4 Panels)
+
+```{r fig}
+# label_size <- 12
+# tick_label_size <- 10
+
+# set_fig_width = 9
+# set_fig_height = 3.5
+set_fig_width <- 6.5
+set_fig_height <- 6
+# set_fig_ylim = c(.1, .7)
+
+set_fig_mech <- 1:data$para_l_mech
+set_fig_span <- 1:data$para_l_span
+
+set_fig_enforcement <- data$para_l_enfo
+
+set_fig_turbulence <- 1
+set_fig_turnover <- 1
+
+set_fig_t_short <- 25
+set_fig_t_long <- 100
+
+x_label <- expression("Span of Control (S)")
+x_tick_label <- data$para_v_span
+x_tick_label <- as.character(x_tick_label)
+x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_label)], "\n\u2190 Tall")
+x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
+
+y_label <- "Organizational Performance"
+y_label <- "Organizational Learning Effectiveness"
+y_value_sc <- aperm(data$r_perf_avg)
+y_value_nr <- aperm(data$r_perf_nr_avg)
+y_value_rr <- aperm(data$r_perf_rr_avg)
+
+label_panel_x <- c(
+  bquote("Short-Term (" * italic(t) == .(set_fig_t_short) * ")"),
+  bquote("Long-Term (" * italic(t) == .(set_fig_t_long) * ")")
+)
+label_panel_x <- factor(
+  label_panel_x,
+  levels = label_panel_x
+)
+
+label_panel_y <- c(
+  bquote("Without Social Dynamics" * ""),
+  bquote("With Social Dynamics" * "")
+)
+label_panel_y <- factor(
+  label_panel_y,
+  levels = label_panel_y
+)
+
+label_legend <- c(
+  "(i) Common Counterfactual",
+  "(ii) Network Closure",
+  "(iii) Preferential Attachment"
+)
+label_legend <- factor(
+  label_legend,
+  levels = label_legend
+)
+
+df_fig <- data.frame()
+
+panel <- label_panel_x[1]
+time <- set_fig_t_short
+df_next <- data.frame(
+  time = panel,
+  is_dynamic = label_panel_y[1],
+  mech = label_legend[1],
+  span = data$para_v_span[set_fig_span],
+  outcome = y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time],
+  span_opt = data$para_v_span[which.max(y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])],
+  y_opt = y_value_nr[1, which.max(y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+)
+df_fig <- rbind(df_fig, df_next)
+df_next$is_dynamic <- label_panel_y[2]
+df_next$mech <- label_legend[2]
+df_next$outcome <- y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_next$span_opt <- data$para_v_span[which.max(y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])]
+df_next$y_opt <- y_value_sc[1, which.max(y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_fig <- rbind(df_fig, df_next)
+df_next$mech <- label_legend[3]
+df_next$outcome <- y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_next$span_opt <- data$para_v_span[which.max(y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])]
+df_next$y_opt <- y_value_sc[2, which.max(y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_fig <- rbind(df_fig, df_next)
+
+panel <- label_panel_x[2]
+time <- set_fig_t_long
+df_next <- data.frame(
+  time = panel,
+  is_dynamic = label_panel_y[1],
+  mech = label_legend[1],
+  span = data$para_v_span[set_fig_span],
+  outcome = y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time],
+  span_opt = data$para_v_span[which.max(y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])],
+  y_opt = y_value_nr[1, which.max(y_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+)
+df_fig <- rbind(df_fig, df_next)
+df_next$is_dynamic <- label_panel_y[2]
+df_next$mech <- label_legend[2]
+df_next$outcome <- y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_next$span_opt <- data$para_v_span[which.max(y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])]
+df_next$y_opt <- y_value_sc[1, which.max(y_value_sc[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_fig <- rbind(df_fig, df_next)
+df_next$mech <- label_legend[3]
+df_next$outcome <- y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_next$span_opt <- data$para_v_span[which.max(y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time])]
+df_next$y_opt <- y_value_sc[2, which.max(y_value_sc[2, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]), set_fig_enforcement, set_fig_turbulence, set_fig_turnover, time]
+df_fig <- rbind(df_fig, df_next)
+
+df_fig_appendix <- df_fig %>%
+  group_by(is_dynamic, time) %>% # all variables used in facet_grid/facet_wrap
+  summarize(
+    y_min = min(outcome),
+    y_max = max(outcome),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    y_range = y_max - y_min,
+    # 2% extra space at top and bottom:
+    y_min_adj = y_min - .1 * y_range,
+    y_max_adj = y_max + .15 * y_range
+  )
+df_fig_appendix$panel_label <- paste0("(", LETTERS[1:nrow(df_fig_appendix)], ")")
+
+axes <- aes(
+  x = span,
+  y = outcome,
+  color = mech,
+  shape = mech,
+  linetype = mech
+)
+
+fig <- ggplot(data = df_fig, mapping = axes) +
+  ggh4x::facet_grid2(
+    is_dynamic ~ time,
+    scales = "free_y",
+    switch = "y",
+    independent = "y",
+    labeller = label_parsed
+  ) +
+  geom_line(alpha = .9, size = .5) +
+  geom_point(size = 2) +
+  geom_point(
+    aes(x = span_opt, y = y_opt),
+    size = 2,
+    shape = 8,
+    show_guide = F
+  ) +
+  geom_blank(data = df_fig_appendix, aes(y = y_min_adj), inherit.aes = F) +
+  geom_blank(data = df_fig_appendix, aes(y = y_max_adj), inherit.aes = F) +
+  geom_text(data = df_fig_appendix, aes(label = panel_label), x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, inherit.aes = F) +
+  scale_color_manual(
+    breaks = label_legend,
+    values = c("#006400", "#E81727", "#FF7F0E")
+  ) +
+  scale_shape_manual(breaks = label_legend, values = c(67, 78, 80)) +
+  scale_linetype_manual(
+    breaks = label_legend,
+    values = c("dashed", "solid", "solid")
+  ) +
+  scale_x_discrete(limits = data$para_v_span[set_fig_span], labels = x_tick_label[set_fig_span]) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(x = x_label, y = y_label) +
+  theme_bw() +
+  theme(
+    plot.background = element_blank(),
+    text = element_text(size = label_size, color = "black"),
+    axis.title = element_text(size = label_size, color = "black"),
+    axis.text = element_text(size = tick_label_size, color = "black"),
+    axis.text.x = element_text(color = "black"),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(size = label_size, color = "black"),
+    panel.spacing = unit(1, "lines"),
+    legend.background = element_blank(),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+ggsave(
+  paste0(
+    fig_id,
+    "_",
+    "fig_",
+    y_label,
+    "span",
+    paste0(data$para_v_span[set_fig_span], collapse = ","),
+    "e",
+    data$para_v_enfo[set_fig_enforcement],
+    "t",
+    set_fig_t_short, "-", set_fig_t_long,
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+```
+
+## Demonstration of Small worldness (Outcome panels)
+
+```{r fig}
+set_fig_width <- 6
+set_fig_height <- 4
+set_fig_ylim <- c(-.1, .9)
+txt_scale <- .9
+
+set_fig_h <- 1
+
+set_fig_mech <- 1:data$para_l_mech
+set_fig_span <- 1:data$para_l_span
+
+set_fig_enforcement <- data$para_l_enfo
+set_fig_t <- data$para_time
+# set_fig_t <- 5
+
+x_label <- expression("Span of Control (S)")
+x_tick_label <- data$para_v_span
+x_tick_label <- as.character(x_tick_label)
+x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_label)], "\n\u2190 Tall")
+x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
+
+# param1_label <- '(A) Small-Worldiness (Q)'
+# param1_value_sc <- data$r_sigm_avg
+# param1_value_nr <- data$r_sigm.nr_avg
+# param1_value_rr <- data$r_sigm.rr_avg
+# param2_label <- '(B) Centralization (C)'
+# param2_value_sc <- data$r_cent_avg
+# param2_value_nr <- data$r_cent_nr_avg
+# param2_value_rr <- data$r_cent_rr_avg
+
+# param1_label <- '(A) Small-Worldiness (Q)'
+# param1_value_sc <- data$r_sigm_avg
+# param1_value_nr <- data$r_sigm.nr_avg
+# param1_value_rr <- data$r_sigm.rr_avg
+# param2_label <- '(B) OMEGA'
+# param2_value_sc <- data$r_omeg_avg
+# param2_value_nr <- data$r_omeg.nr_avg
+# param2_value_rr <- data$r_omeg.rr_avg
+
+param1_label <- "(A) Average Path Length"
+param1_value_sc <- data$r_dist_avg
+param1_value_nr <- data$r_dist.nr_avg
+param1_value_rr <- data$r_dist.rr_avg
+# param2_label <- '(B) Clustering Coefficient (WS)'
+# param2_value_sc <- data$r_clws_avg
+# param2_value_nr <- data$r_clws.nr_avg
+# param2_value_rr <- data$r_clws.rr_avg
+# param2_label <- '(B) Clustering Coefficient'
+# param2_value_sc <- data$r_clus_avg
+# param2_value_nr <- data$r_clus.nr_avg
+# param2_value_rr <- data$r_clus.rr_avg
+
+# param1_label <- '(A) Clustering Coefficient WS'
+# param1_value_sc <- data$r_clws_avg
+# param1_value_nr <- data$r_clws.nr_avg
+# param1_value_rr <- data$r_clws.rr_avg
+# param2_label <- '(B) Clustering Coefficient'
+# param2_value_sc <- data$r_clus_avg
+# param2_value_nr <- data$r_clus.nr_avg
+# param2_value_rr <- data$r_clus.rr_avg
+
+# param1_label <- '(A) Centralization'
+# param1_value_sc <- data$r_cent_avg
+# param1_value_nr <- data$r_cent_nr_avg
+# param1_value_rr <- data$r_cent_rr_avg
+# param2_label <- '(B) Network Efficiency'
+# param2_value_sc <- data$r_effi_avg
+# param2_value_nr <- data$r_effi.nr_avg
+# param2_value_rr <- data$r_effi.rr_avg
+
+# param2_label <- '(B) Centralization'
+# param2_value_sc <- data$r_cent_avg
+# param2_value_nr <- data$r_cent_nr_avg
+# param2_value_rr <- data$r_cent_rr_avg
+
+param2_label <- "(A) Distance Variance"
+param2_value_sc <- data$r_spva_avg
+param2_value_nr <- data$r_spva_nr_avg
+param2_value_rr <- data$r_spva_rr_avg
+
+param2_label <- "(B) Betweenness Centrality Variance"
+param2_value_sc <- data$r_bcva_avg
+param2_value_nr <- data$r_bcva_nr_avg
+param2_value_rr <- data$r_bcva_rr_avg
+
+param_label <- c(param1_label, param2_label)
+param_label <- factor(param_label, levels = param_label)
+
+label_mech_iii <- paste0("(", tolower(as.roman(1:length(label_mech))), ") ", label_mech)
+label_mech_iii <- factor(label_mech_iii, levels = label_mech_iii)
+
+df_fig <- data.frame()
+mech <- 1
+outcome1 <- param1_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+outcome2 <- param2_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+df_next <- data.frame(
+  mech = label_mech_iii[mech],
+  param = param_label[1],
+  span = data$para_v_span[set_fig_span],
+  outcome = outcome1
+)
+df_fig <- rbind(df_fig, df_next)
+df_next <- data.frame(
+  mech = label_mech_iii[mech],
+  param = param_label[2],
+  span = data$para_v_span[set_fig_span],
+  outcome = outcome2
+)
+df_fig <- rbind(df_fig, df_next)
+
+mech <- 2
+outcome1 <- param1_value_rr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+outcome2 <- param2_value_rr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+df_next <- data.frame(
+  mech = label_mech_iii[mech],
+  param = param_label[1],
+  span = data$para_v_span[set_fig_span],
+  outcome = outcome1
+)
+df_fig <- rbind(df_fig, df_next)
+df_next <- data.frame(
+  mech = label_mech_iii[mech],
+  param = param_label[2],
+  span = data$para_v_span[set_fig_span],
+  outcome = outcome2
+)
+df_fig <- rbind(df_fig, df_next)
+
+for (mech in set_fig_mech) {
+  outcome1 <- param1_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+  outcome2 <- param2_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+
+  df_next <- data.frame(
+    mech = label_mech_iii[mech + 2],
+    param = param_label[1],
+    span = data$para_v_span[set_fig_span],
+    outcome = outcome1
+  )
+  df_fig <- rbind(df_fig, df_next)
+
+  df_next <- data.frame(
+    mech = label_mech_iii[mech + 2],
+    param = param_label[2],
+    span = data$para_v_span[set_fig_span],
+    outcome = outcome2
+  )
+  df_fig <- rbind(df_fig, df_next)
+}
+
+axes <- aes(
+  x = span,
+  y = outcome,
+  color = mech,
+  linetype = mech
+)
+
+range1 <- range(df_fig$outcome1)
+range2 <- range(df_fig$outcome2)
+
+df_fig$outcome2 <- scales::rescale(df_fig$outcome2, to = range1)
+
+fig <- ggplot(data = df_fig, mapping = axes) +
+  # facet_grid(. ~ param, scales = 'free_y', independent='y') +
+  ggh4x::facet_grid2(. ~ param, scales = "free_y", independent = "y") +
+  geom_line(alpha = .9, size = .5) +
+  scale_color_manual(breaks = label_mech_iii, values = c("#282728", "#00B050", "#E81727", "#1a80bb")) +
+  guides(color = guide_legend(nrow = 2, byrow = T)) +
+  geom_point(aes(shape = mech), size = 1.5) +
+  scale_shape_manual(breaks = label_mech_iii, values = c(4, 16, 78, 80)) +
+  scale_linetype_manual(breaks = label_mech_iii, values = c("dashed", "dotted", "solid", "solid")) +
+  labs(x = x_label, y = "") +
+  scale_x_discrete(limits = data$para_v_span[set_fig_span], labels = x_tick_label[set_fig_span]) +
+  theme_bw() +
+  theme(
+    text = element_text(
+      size = label_size, color = "black"
+    ),
+    axis.title = element_text(size = label_size * txt_scale, color = "black"),
+    axis.text = element_text(size = tick_label_size * txt_scale, color = "black"),
+    axis.text.x = element_text(
+      # angle = 90, vjust = 0.5, hjust=1,
+      color = "black"
+    ),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(size = label_size * txt_scale, color = "black"),
+    panel.spacing = unit(1, "lines"),
+    guide_legend(nrow = 2, byrow = T),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+ggsave(
+  paste0(
+    fig_id, "_",
+    "fig_",
+    "e", data$para_v_enfo[set_fig_enforcement],
+    "t", set_fig_t,
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+```
+
+## Small World Q and Omega Prime
+```{r fig}
+set_fig_width <- 6
+set_fig_height <- 4
+set_fig_ylim <- c(-.1, .9)
+txt_scale <- .9
+
+set_fig_h <- 1
+
+set_fig_mech <- 1:data$para_l_mech
+set_fig_span <- 1:data$para_l_span
+
+set_fig_enforcement <- data$para_l_enfo
+set_fig_t <- data$para_time
+# set_fig_t <- 5
+
+x_label <- expression("Span of Control (S)")
+x_tick_label <- data$para_v_span
+x_tick_label <- as.character(x_tick_label)
+x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_label)], "\n\u2190 Tall")
+x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
+
+param1_label <- "(A) Small-World Quotient (Q)"
+param1_value_sc <- data$r_sigm_avg
+param1_value_nr <- data$r_sigm.nr_avg
+param1_value_rr <- data$r_sigm.rr_avg
+param2_label <- "(B) Small-World Omega (\u03C9)"
+param2_value_sc <- data$r_omeg_avg
+param2_value_nr <- data$r_omeg.nr_avg
+param2_value_rr <- data$r_omeg.rr_avg
+# param2_label <- '(B) Overall Centralization'
+# param2_value_sc <- data$r_cent_avg
+# param2_value_nr <- data$r_cent_nr_avg
+# param2_value_rr <- data$r_cent_rr_avg
+
+param1_label <- "(A) Average Distance Variance"
+param1_value_sc <- data$r_spva_avg
+param1_value_nr <- data$r_spva_nr_avg
+param1_value_rr <- data$r_spva_rr_avg
+param2_label <- "(B) Overall Centralization"
+param2_value_sc <- data$r_cent_avg
+param2_value_nr <- data$r_cent_nr_avg
+param2_value_rr <- data$r_cent_rr_avg
+# param2_label <- '(B) Betweenness Centrality Variance'
+# param2_value_sc <- data$r_bcva_avg
+# param2_value_nr <- data$r_bcva_nr_avg
+# param2_value_rr <- data$r_bcva_rr_avg
+
+param_label <- c(param1_label, param2_label)
+param_label <- factor(param_label, levels = param_label)
+
+label_legend <- c(
+  "(i) Common Counterfactual",
+  "(ii) Network Closure",
+  "(iii) Preferential Attachment"
+)
+label_legend <- factor(
+  label_legend,
+  levels = label_legend
+)
+
+df_fig <- data.frame()
+# Random Counterfactual
+outcome1 <- param1_value_rr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+outcome2 <- param2_value_rr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+df_next <- data.frame(
+  mech = label_legend[1],
+  param = param_label[1],
+  span = data$para_v_span[set_fig_span],
+  outcome = outcome1
+)
+df_fig <- rbind(df_fig, df_next)
+df_next <- data.frame(
+  mech = label_legend[1],
+  param = param_label[2],
+  span = data$para_v_span[set_fig_span],
+  outcome = outcome2
+)
+df_fig <- rbind(df_fig, df_next)
+
+for (mech in set_fig_mech) {
+  outcome1 <- param1_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+  outcome2 <- param2_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+
+  df_next <- data.frame(
+    mech = label_legend[mech + 1],
+    param = param_label[1],
+    span = data$para_v_span[set_fig_span],
+    outcome = outcome1
+  )
+  df_fig <- rbind(df_fig, df_next)
+
+  df_next <- data.frame(
+    mech = label_legend[mech + 1],
+    param = param_label[2],
+    span = data$para_v_span[set_fig_span],
+    outcome = outcome2
+  )
+  df_fig <- rbind(df_fig, df_next)
+}
+
+axes <- aes(
+  x = span,
+  y = outcome,
+  color = mech,
+  linetype = mech
+)
+
+range1 <- range(df_fig$outcome1)
+range2 <- range(df_fig$outcome2)
+
+df_fig$outcome2 <- scales::rescale(df_fig$outcome2, to = range1)
+
+fig <- ggplot(data = df_fig, mapping = axes) +
+  # facet_grid(. ~ param, scales = 'free_y', independent='y') +
+  ggh4x::facet_grid2(. ~ param, scales = "free_y", independent = "y") +
+  geom_line(alpha = .9, size = .5) +
+  scale_color_manual(breaks = label_legend, values = c("#006400", "#E81727", "#FF7F0E")) +
+  # guides(color = guide_legend(nrow = 2, byrow = T)) +
+  geom_point(aes(shape = mech), size = 2) +
+  scale_shape_manual(breaks = label_legend, values = c(67, 78, 80)) +
+  scale_linetype_manual(breaks = label_legend, values = c("dashed", "solid", "solid")) +
+  labs(x = x_label, y = "") +
+  scale_x_discrete(limits = data$para_v_span[set_fig_span], labels = x_tick_label[set_fig_span]) +
+  theme_bw() +
+  theme(
+    text = element_text(
+      size = label_size, color = "black"
+    ),
+    axis.title = element_text(size = label_size * txt_scale, color = "black"),
+    axis.text = element_text(size = tick_label_size * txt_scale, color = "black"),
+    axis.text.x = element_text(
+      # angle = 90, vjust = 0.5, hjust=1,
+      color = "black"
+    ),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(size = label_size * txt_scale, color = "black"),
+    panel.spacing = unit(1, "lines"),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+ggsave(
+  paste0(
+    fig_id, "_",
+    "fig_",
+    "e", data$para_v_enfo[set_fig_enforcement],
+    "t", set_fig_t,
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+```
+
+## Changes in Network Features
+```{r fig}
+set_fig_width <- 6.5
+set_fig_height <- 3
+set_fig_ylim <- c(-.1, .9)
+label_size <- 10
+tick_label_size <- 8
+
+set_fig_h <- 1
+
+set_fig_mech <- 1:data$para_l_mech
+set_fig_span <- 1:data$para_l_span
+
+set_fig_enforcement <- data$para_l_enfo
+
+set_fig_turbulence <- 1
+set_fig_turnover <- 1
+
+set_fig_t <- data$para_time
+# set_fig_t <- 5
+
+x_label <- expression("Span of Control (S)")
+x_tick_label <- data$para_v_span
+x_tick_label <- as.character(x_tick_label)
+x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_label)], "\n\u2190 Tall")
+x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
+
+param1_label <- "Average Distance Variance"
+param1_value_sc <- aperm(data$r_spva_avg)
+param1_value_nr <- aperm(data$r_spva_nr_avg)
+param1_value_rr <- aperm(data$r_spva_rr_avg)
+param2_label <- "Overall Centralization"
+param2_value_sc <- aperm(data$r_cent_avg)
+param2_value_nr <- aperm(data$r_cent_nr_avg)
+param2_value_rr <- aperm(data$r_cent_rr_avg)
+
+param_label <- c(param1_label, param2_label)
+param_label <- factor(param_label, levels = param_label)
+
+label_panel <- c(
+  "(A) Common Effect",
+  "(B) Distinct Effect",
+  "(C) Total Effect (A + B)"
+)
+label_panel <- factor(
+  label_panel,
+  levels = label_panel
+)
+
+label_legend <- c(
+  "(i) Common Effect",
+  "(ii) Network Closure",
+  "(iii) Preferential Attachment"
+)
+label_legend <- factor(
+  label_legend,
+  levels = label_legend
+)
+
+df_fig <- data.frame()
+
+df_next <- data.frame(
+  panel = label_panel[1],
+  mech = label_legend[1],
+  span = data$para_v_span[set_fig_span],
+  span_label = paste0("(", data$para_v_span[set_fig_span], ")"),
+  span_label_hjust = .4,
+  span_label_vjust = 0,
+  x = param1_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+  y = param2_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+  x_end = param1_value_rr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+  y_end = param2_value_rr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+)
+df_fig <- rbind(df_fig, df_next)
+
+for (mech in set_fig_mech) {
+  df_next <- data.frame(
+    panel = label_panel[2],
+    mech = label_legend[mech + 1],
+    span = data$para_v_span[set_fig_span],
+    span_label = paste0("(", data$para_v_span[set_fig_span], ")"),
+    span_label_hjust = 1,
+    span_label_vjust = 1,
+    x = param1_value_rr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    y = param2_value_rr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    x_end = param1_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    y_end = param2_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+  )
+  df_fig <- rbind(df_fig, df_next)
+}
+
+for (mech in set_fig_mech) {
+  df_next <- data.frame(
+    panel = label_panel[3],
+    mech = label_legend[mech + 1],
+    span = data$para_v_span[set_fig_span],
+    span_label = paste0("(", data$para_v_span[set_fig_span], ")"),
+    span_label_hjust = .4,
+    span_label_vjust = 0,
+    x = param1_value_nr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    y = param2_value_nr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    x_end = param1_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
+    y_end = param2_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+  )
+  df_fig <- rbind(df_fig, df_next)
+}
+
+df_fig[df_fig$mech == "(ii) Network Closure", ]$span_label <- ""
+
+axes <- aes(
+  x = x,
+  y = y,
+  xend = x_end,
+  yend = y_end,
+  color = mech,
+  linetype = mech,
+  label = span_label
+  # label = span
+)
+
+range1 <- range(df_fig$outcome1)
+range2 <- range(df_fig$outcome2)
+
+df_fig$outcome2 <- scales::rescale(df_fig$outcome2, to = range1)
+
+fig <- ggplot(data = df_fig, mapping = axes) +
+  facet_wrap(. ~ panel, scales = "free") +
+  geom_segment(arrow = arrow(length = unit(1, "mm"), type = "closed"), size = .3) +
+  geom_text(aes(hjust = span_label_hjust, vjust = span_label_vjust), color = 'black', size = 2, size.unit = "mm", show.legend = F) +
+  labs(x = param1_label, y = param2_label) +
+  scale_color_manual(breaks = label_legend, values = c("#006400", "#E81727", "#FF7F0E")) +
+  scale_shape_manual(breaks = label_legend, values = c(67, 78, 80)) +
+  scale_linetype_manual(breaks = label_legend, values = c("twodash", "solid", "longdash")) +
+  theme_bw() +
+  theme(
+    text = element_text(
+      size = label_size, color = "black"
+    ),
+    axis.title = element_text(size = label_size, color = "black"),
+    axis.text = element_text(size = tick_label_size, color = "black"),
+    axis.text.x = element_text(
+      # angle = 90, vjust = 0.5, hjust=1,
+      color = "black"
+    ),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(size = label_size, color = "black"),
+    panel.spacing = unit(1, "lines"),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+
+ggsave(
+  paste0(
+    fig_id, "_",
+    "fig_",
+    "e", data$para_v_enfo[set_fig_enforcement],
+    "t", set_fig_t,
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+```
+
+# Network Graph
+
+## Network Setup
+```{r netSet}
+# Libraries for network graphs
+library(igraph)
+library(ggplot2)
+library(ggraph)
+library(tidygraph)
+library(ggforce)
+library(concaveman)
+library(graphlayouts)
+# library(oaqc)
+library(sna)
+library(dplyr)
+library(ggsci)
+library(graphlayouts) # backbone layout
+
+fig_dpi <- 600
+label_size <- 10
+tick_label_size <- 8
+
+net_width <- 1.75
+net_height <- 1.75
+node_size <- 1
+node_stroke <- .1
+edge_width <- .1
+# net_width <- 4
+# net_height <- 4
+# net_width <- 2.5
+# net_height <- 1.5
+# net_width <- 1.5
+# net_height <- 3
+edge_alpha <- .75
+```
+
+## Network Grpaher
+```{r net}
+files2print <- function(list_file) {
+  for (file in list_file) {
+    dat <- read.csv(file)
+    net_node <- unique(dat[, "SOURCE"])
+    # colnames(net_node) <- c('id')
+    # net_node$color <- ifelse(net_node$type=='[true]','black','gray75')
+    net_edge <- distinct(dat[, c("SOURCE", "TARGET", "TIE_ENFORCED")])
+    net_edge <- na.omit(net_edge)
+    colnames(net_edge) <- c("from", "to", "is_enforced")
+    # V(net)$label <- NA
+
+    net <- graph_from_data_frame(
+      vertices = net_node,
+      d = net_edge,
+      directed = F
+    )
+    set_vertex_attr(net, "ec", value = eigen_centrality(net)$vector)
+
+    # Find triangles in the graph
+    triad_vertices <- matrix(triangles(net), nrow = 3)
+    triads <- cliques(net, min = 3, max = 3)
+
+    # Initialize an edge attribute 'in_triad' to FALSE for all edges
+    E(net)$in_triad <- FALSE
+
+    # Loop through each set of 3 vertices (one triangle at a time)
+    if (length(triads) >= 1) {
+      for (triad in triads) {
+        # Set the 'in_triad' attribute to TRUE for each edge in the triangle
+        E(net)[triad[1] %--% triad[2]]$in_triad <- TRUE
+        E(net)[triad[2] %--% triad[3]]$in_triad <- TRUE
+        E(net)[triad[3] %--% triad[1]]$in_triad <- TRUE
+      }
+    }
+
+    # rm(list = c('layout'))
+    # layout <- create_layout(net, layout = 'fr')
+    layout <- create_layout(net, layout = "kk")
+
+    # layout <- create_layout(net, 'tree', root = 1)
+    # layout <- create_layout(net, 'tree', root = 1, circular = T)
+
+    # net_formal <- net
+    # net_formal <- delete_edges(net_formal, which(E(net_formal)$is_enforced=="false"))
+    # layout <- create_layout(net_formal, 'tree', root = 1)
+    # layout <- data.frame(x = layout$x, y = layout$y)
+    # layout2 <- create_layout(net, 'tree', root = 1)
+
+    # layout <- create_layout(net, layout = 'lgl')
+    # layout <- create_layout(net, layout = 'graphopt')
+    # layout <- create_layout(net, layout = 'stress')
+    # layout <- create_layout(net, layout = 'auto')
+    # layout <- create_layout(net, layout = 'nicely') # -->   fr
+    # layout <- create_layout(net, layout = 'backbone', keep=.1)
+
+    triad_position <- triad_vertices %>%
+      apply(2, function(triplet) {
+        layout[triplet, ] %>%
+          mutate(triangle_id = paste(triplet, collapse = "-"))
+      }) %>%
+      bind_rows()
+
+    pp <- ggraph(net, layout = layout)
+    if (nrow(triad_position) > 0) {
+      pp <- pp + geom_polygon(
+        data = triad_position,
+        aes(x = x, y = y, group = triangle_id),
+        fill = "#E81727",
+        alpha = .1
+      )
+    }
+    pp <- pp +
+      scale_fill_npg() +
+      # geom_edge_diagonal(
+      # geom_edge_arc(
+      geom_edge_link(
+        aes(
+          color = E(net)$in_triad,
+          width = E(net)$in_triad,
+          linetype = net_edge$is_enforced
+        ),
+        # color = 'black',
+        # width = edge_width,
+        alpha = edge_alpha
+      ) +
+      scale_edge_color_manual(breaks = c(TRUE, FALSE), values = c("#E81727", "black")) +
+      scale_edge_width_manual(breaks = c(TRUE, FALSE), values = c(edge_width * 1.5, edge_width)) +
+      scale_edge_linetype_manual(breaks = c("true", "false"), values = c("solid", "dashed")) +
+      geom_node_point(
+        shape = 1,
+        color = "black",
+        size = node_size,
+        stroke = node_stroke
+      ) +
+      theme_void() +
+      theme(
+        legend.position = "none",
+        plot.margin = grid::unit(c(0, 0, 0, 0), "mm")
+      )
+
+    pp
+
+    file_out <- paste0(
+      dirname(file), "\\",
+      gsub("csv", "png", basename(file))
+    )
+
+    ggsave(
+      file_out,
+      units = "in",
+      width = net_width,
+      height = net_height,
+      dpi = fig_dpi
+    )
+
+    print(file_out)
+  }
+}
+
+files2print(choose.files())
+```
+
+## Network Metric
+
+```{r}
+num_edges <- data$para_informal_init_n + data$para_n - 1
+p <- num_edges / (data$para_n * (data$para_n - 1) / 2)
+
+length_random <- log(data$para_n) / log(p * (data$para_n - 1))
+clustering_random <- p
+distvar_random <- log(data$para_n) / (log(data$para_n * p)) * (log(data$para_n * p))
+
+list_file_net <- choose.files()
+net_metric <- data.frame()
+for (file_net in list_file_net) {
+  dat <- read.csv(file_net)
+
+  net_node <- unique(dat[, "SOURCE"])
+  net_edge <- distinct(dat[, c("SOURCE", "TARGET", "TIE_ENFORCED")])
+  net_edge <- na.omit(net_edge)
+  colnames(net_edge) <- c("from", "to", "is_enforced")
+  net <- graph_from_data_frame(
+    vertices = net_node,
+    d = net_edge,
+    directed = F
+  )
+
+  local_clustering <- sapply(V(net), function(v) {
+    neighbors <- neighbors(net, v) # Get neighbors of node v
+    k <- length(neighbors) # Degree of node v
+    if (k < 2) {
+      return(0) # Cv = 0 if less than 2 neighbors
+    }
+    subgraph <- induced_subgraph(net, neighbors) # Subgraph of neighbors
+    num_edges <- ecount(subgraph) # Number of edges in the subgraph
+    return(2 * num_edges / (k * (k - 1))) # Cv calculation
+  })
+
+  length <- mean_distance(net)
+  clustering <- mean(local_clustering, na.rm = T)
+  q <- (clustering / clustering_random) / (length / length_random)
+  cent <- centr_clo(net, normalized = T, mode = "all")$centralization
+
+  df_next <- data.frame(
+    file = basename(file_net),
+    q = q,
+    cent = cent,
+    legnth = length,
+    clustering = clustering
+  )
+
+  net_metric <- rbind(net_metric, df_next)
+}
+```

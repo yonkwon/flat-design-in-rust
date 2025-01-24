@@ -1,13 +1,14 @@
+// For parallel iteration
 use rayon::prelude::*; 
+use crate::scenario::Scenario;
+use crate::params;
+use indicatif::{ProgressBar, ProgressStyle};
 use ndarray::{ArrayD, IxDyn};
 use std::sync::{Arc, Mutex};
-use indicatif::{ProgressBar, ProgressStyle};
-use chrono::Local;
-use crate::params;
-use crate::scenario::Scenario;
 
 /// Manages the experiment, including running the experiment and processing results.
 /// Modify as needed based on your experiment design.
+
 pub struct ExperimentManager {
     pub r_perf_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
     pub r_perf_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
@@ -199,9 +200,9 @@ impl ExperimentManager {
                 .progress_chars("#>-"),
         );
         println!(
-            "{}\tInitiated: Running Experiments - Target file: {:?}",
-            Local::now().format("%Y-%m-%d %H:%M:%S"),
-            params::FILE_NAME,
+            "Initiated: Running Experiments for {} combinations with {} iterations each",
+            length_combination / params::ITERATION,
+            params::ITERATION
         );
 
         //TODO: Create value list within each combination, then save it to ndarray after iteration. This way reduces the number of locks.
@@ -286,8 +287,10 @@ impl ExperimentManager {
                 
                 let mut scenario_random_rewiring = scenario.get_clone();
                 scenario_random_rewiring.set_network_params(true, true);
+
                 let mut scenario_no_rewiring = scenario.get_clone();
                 scenario_no_rewiring.set_network_params(false, false);
+
                 scenario.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Systematically formed
                 scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
 
@@ -313,13 +316,6 @@ impl ExperimentManager {
                     local_cent_23.accumulate(t, scenario_random_rewiring.overall_centralization - scenario_no_rewiring.overall_centralization);
                     local_cent_13.accumulate(t, scenario.overall_centralization - scenario_no_rewiring.overall_centralization);
 
-                    local_spva.accumulate(t, scenario.shortest_path_variance);
-                    local_spva_rr.accumulate(t, scenario_random_rewiring.shortest_path_variance);
-                    local_spva_nr.accumulate(t, scenario_no_rewiring.shortest_path_variance);
-                    local_spva_12.accumulate(t, scenario.shortest_path_variance - scenario_random_rewiring.shortest_path_variance);
-                    local_spva_23.accumulate(t, scenario_random_rewiring.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
-                    local_spva_13.accumulate(t, scenario.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
-                    
                     local_effi.accumulate(t, scenario.network_efficiency);
                     local_effi_rr.accumulate(t, scenario_random_rewiring.network_efficiency);
                     local_effi_nr.accumulate(t, scenario_no_rewiring.network_efficiency);
@@ -341,6 +337,12 @@ impl ExperimentManager {
                     local_omeg_23.accumulate(t, scenario_random_rewiring.omega - scenario_no_rewiring.omega);
                     local_omeg_13.accumulate(t, scenario.omega - scenario_no_rewiring.omega);
 
+                    local_spva.accumulate(t, scenario.shortest_path_variance);
+                    local_spva_rr.accumulate(t, scenario_random_rewiring.shortest_path_variance);
+                    local_spva_nr.accumulate(t, scenario_no_rewiring.shortest_path_variance);
+                    local_spva_12.accumulate(t, scenario.shortest_path_variance - scenario_random_rewiring.shortest_path_variance);
+                    local_spva_23.accumulate(t, scenario_random_rewiring.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
+                    local_spva_13.accumulate(t, scenario.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
 
                     scenario.step_forward();
                     scenario_random_rewiring.step_forward();
@@ -376,13 +378,6 @@ impl ExperimentManager {
             local_cent_23.finalize();
             local_cent_13.finalize();
             
-            local_spva.finalize();
-            local_spva_rr.finalize();
-            local_spva_nr.finalize();
-            local_spva_12.finalize();
-            local_spva_23.finalize();
-            local_spva_13.finalize();
-            
             local_effi.finalize();
             local_effi_rr.finalize();
             local_effi_nr.finalize();
@@ -403,6 +398,13 @@ impl ExperimentManager {
             local_omeg_12.finalize();
             local_omeg_23.finalize();
             local_omeg_13.finalize();
+            
+            local_spva.finalize();
+            local_spva_rr.finalize();
+            local_spva_nr.finalize();
+            local_spva_12.finalize();
+            local_spva_23.finalize();
+            local_spva_13.finalize();
             
             for t in 0..params::TIME {
                 let mut indices_t = indices.clone();
@@ -462,24 +464,6 @@ impl ExperimentManager {
                 self.r_cent_13_avg.lock().unwrap()[&ix_dyn] = local_cent_13.avg[t];
                 self.r_cent_13_std.lock().unwrap()[&ix_dyn] = local_cent_13.std[t];
                 
-                self.r_spva_avg.lock().unwrap()[&ix_dyn] = local_spva.avg[t];
-                self.r_spva_std.lock().unwrap()[&ix_dyn] = local_spva.std[t];
-
-                self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] = local_spva_rr.avg[t];
-                self.r_spva_rr_std.lock().unwrap()[&ix_dyn] = local_spva_rr.std[t];
-
-                self.r_spva_nr_avg.lock().unwrap()[&ix_dyn] = local_spva_nr.avg[t];
-                self.r_spva_nr_std.lock().unwrap()[&ix_dyn] = local_spva_nr.std[t];
-
-                self.r_spva_12_avg.lock().unwrap()[&ix_dyn] = local_spva_12.avg[t];
-                self.r_spva_12_std.lock().unwrap()[&ix_dyn] = local_spva_12.std[t];
-
-                self.r_spva_23_avg.lock().unwrap()[&ix_dyn] = local_spva_23.avg[t];
-                self.r_spva_23_std.lock().unwrap()[&ix_dyn] = local_spva_23.std[t];
-
-                self.r_spva_13_avg.lock().unwrap()[&ix_dyn] = local_spva_13.avg[t];
-                self.r_spva_13_std.lock().unwrap()[&ix_dyn] = local_spva_13.std[t];
-                
                 self.r_effi_avg.lock().unwrap()[&ix_dyn] = local_effi.avg[t];
                 self.r_effi_std.lock().unwrap()[&ix_dyn] = local_effi.std[t];
                 
@@ -533,6 +517,25 @@ impl ExperimentManager {
 
                 self.r_omeg_13_avg.lock().unwrap()[&ix_dyn] = local_omeg_13.avg[t];
                 self.r_omeg_13_std.lock().unwrap()[&ix_dyn] = local_omeg_13.std[t];
+
+                self.r_spva_avg.lock().unwrap()[&ix_dyn] = local_spva.avg[t];
+                self.r_spva_std.lock().unwrap()[&ix_dyn] = local_spva.std[t];
+
+                self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] = local_spva_rr.avg[t];
+                self.r_spva_rr_std.lock().unwrap()[&ix_dyn] = local_spva_rr.std[t];
+
+                self.r_spva_nr_avg.lock().unwrap()[&ix_dyn] = local_spva_nr.avg[t];
+                self.r_spva_nr_std.lock().unwrap()[&ix_dyn] = local_spva_nr.std[t];
+
+                self.r_spva_12_avg.lock().unwrap()[&ix_dyn] = local_spva_12.avg[t];
+                self.r_spva_12_std.lock().unwrap()[&ix_dyn] = local_spva_12.std[t];
+
+                self.r_spva_23_avg.lock().unwrap()[&ix_dyn] = local_spva_23.avg[t];
+                self.r_spva_23_std.lock().unwrap()[&ix_dyn] = local_spva_23.std[t];
+
+                self.r_spva_13_avg.lock().unwrap()[&ix_dyn] = local_spva_13.avg[t];
+                self.r_spva_13_std.lock().unwrap()[&ix_dyn] = local_spva_13.std[t];
+                
             }
             },
         );
@@ -550,8 +553,7 @@ impl ExperimentManager {
                         .progress_chars("#>-"),
                 );
                 println!(
-                    "{}\tInitiated: Sampling Network in *.csv for {} combinations",
-                    Local::now().format("%Y-%m-%d %H:%M:%S"),
+                    "Initiated: Sampling Network in *.csv for {} combinations",
                     length_combination
                 );
                 
@@ -584,7 +586,7 @@ impl ExperimentManager {
                     scenario.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Systematically formed
                     scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
     
-                    let file_name_network_csv = format!("{}s{}e{}ptb{}itb{}ptn{}.csv", if *i_social_dynamics==0 {"NetCl"} else {"PrfAt"}, span, enforcement, turbulence_rate, turbulence_interval, turnover_rate);
+                    let file_name_network_csv = format!("{}_s{}_e{}_ptb{}_itb{}_ptn{}.csv", if *i_social_dynamics==0 {"NetCl"} else {"PrfAt"}, span, enforcement, turbulence_rate, turbulence_interval, turnover_rate);
                     let path_network_csv = (params::PARAM_STRING).clone();
                     scenario.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "sc", &file_name_network_csv).as_str());
                     scenario_random_rewiring.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "rr", &file_name_network_csv).as_str());
