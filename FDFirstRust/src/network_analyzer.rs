@@ -131,25 +131,13 @@ impl NetworkAnalyzer {
         }
 
         // Final normalization
-        // averagePathLength /= (double) Main.params::N_DYAD;
         self.average_path_length /= params::N_DYAD as f64;
-
-        // networkEfficiency /= (double) Main.params::N_DYAD;
         self.network_efficiency /= params::N_DYAD as f64;
-
-        // globalClosenessCentralization += closenessCentralityMax * Main.N;
-        // globalClosenessCentralization /= params::CLOSENESS_CENTRALIZATION_DENOMINATOR;
         self.global_closeness_centralization += closeness_centrality_max * (params::N as f64);
         self.global_closeness_centralization /= params::CLOSENESS_CENTRALIZATION_DENOMINATOR;
-
-        // globalClusteringWattsStrogatz /= Main.N;
         self.global_clustering_watts_strogatz /= params::N as f64;
-
-        // shortestPathVariance /= Main.N;
         self.shortest_path_variance /= params::N as f64;
-
-        // Java: adjList = null;
-        // In Rust, we can simply clear it if desired:
+    
         self.adj_list.clear();
     }
 

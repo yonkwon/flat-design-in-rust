@@ -377,6 +377,13 @@ impl ExperimentManager {
             local_cent_23.finalize();
             local_cent_13.finalize();
             
+            local_spva.finalize();
+            local_spva_rr.finalize();
+            local_spva_nr.finalize();
+            local_spva_12.finalize();
+            local_spva_23.finalize();
+            local_spva_13.finalize();
+            
             local_effi.finalize();
             local_effi_rr.finalize();
             local_effi_nr.finalize();
@@ -397,13 +404,6 @@ impl ExperimentManager {
             local_omeg_12.finalize();
             local_omeg_23.finalize();
             local_omeg_13.finalize();
-            
-            local_spva.finalize();
-            local_spva_rr.finalize();
-            local_spva_nr.finalize();
-            local_spva_12.finalize();
-            local_spva_23.finalize();
-            local_spva_13.finalize();
             
             for t in 0..params::TIME {
                 let mut indices_t = indices.clone();
@@ -465,6 +465,7 @@ impl ExperimentManager {
                 
                 self.r_spva_avg.lock().unwrap()[&ix_dyn] = local_spva.avg[t];
                 self.r_spva_std.lock().unwrap()[&ix_dyn] = local_spva.std[t];
+                println!("{}", local_spva.avg[t]);
 
                 self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] = local_spva_rr.avg[t];
                 self.r_spva_rr_std.lock().unwrap()[&ix_dyn] = local_spva_rr.std[t];
