@@ -174,6 +174,18 @@ impl HDF5Manager {
         let r_cent_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_23_std.lock().unwrap().view()).create("r_cent_23_std").unwrap();
         let r_cent_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_13_avg.lock().unwrap().view()).create("r_cent_13_avg").unwrap();
         let r_cent_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_13_std.lock().unwrap().view()).create("r_cent_13_std").unwrap();
+        let r_spva_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_avg.lock().unwrap().view()).create("r_spva_avg").unwrap();
+        let r_spva_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_std.lock().unwrap().view()).create("r_spva_std").unwrap();
+        let r_spva_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_rr_avg.lock().unwrap().view()).create("r_spva_rr_avg").unwrap();
+        let r_spva_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_rr_std.lock().unwrap().view()).create("r_spva_rr_std").unwrap();
+        let r_spva_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_nr_avg.lock().unwrap().view()).create("r_spva_nr_avg").unwrap();
+        let r_spva_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_nr_std.lock().unwrap().view()).create("r_spva_nr_std").unwrap();
+        let r_spva_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_12_avg.lock().unwrap().view()).create("r_spva_12_avg").unwrap();
+        let r_spva_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_12_std.lock().unwrap().view()).create("r_spva_12_std").unwrap();
+        let r_spva_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_23_avg.lock().unwrap().view()).create("r_spva_23_avg").unwrap();
+        let r_spva_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_23_std.lock().unwrap().view()).create("r_spva_23_std").unwrap();
+        let r_spva_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_13_avg.lock().unwrap().view()).create("r_spva_13_avg").unwrap();
+        let r_spva_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_13_std.lock().unwrap().view()).create("r_spva_13_std").unwrap();
         let r_effi_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_avg.lock().unwrap().view()).create("r_effi_avg").unwrap();
         let r_effi_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_std.lock().unwrap().view()).create("r_effi_std").unwrap();
         let r_effi_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_effi_rr_avg.lock().unwrap().view()).create("r_effi_rr_avg").unwrap();
@@ -210,18 +222,6 @@ impl HDF5Manager {
         let r_omeg_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_23_std.lock().unwrap().view()).create("r_omeg_23_std").unwrap();
         let r_omeg_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_13_avg.lock().unwrap().view()).create("r_omeg_13_avg").unwrap();
         let r_omeg_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_omeg_13_std.lock().unwrap().view()).create("r_omeg_13_std").unwrap();
-        let r_spva_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_avg.lock().unwrap().view()).create("r_spva_avg").unwrap();
-        let r_spva_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_std.lock().unwrap().view()).create("r_spva_std").unwrap();
-        let r_spva_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_rr_avg.lock().unwrap().view()).create("r_spva_rr_avg").unwrap();
-        let r_spva_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_rr_std.lock().unwrap().view()).create("r_spva_rr_std").unwrap();
-        let r_spva_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_nr_avg.lock().unwrap().view()).create("r_spva_nr_avg").unwrap();
-        let r_spva_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_nr_std.lock().unwrap().view()).create("r_spva_nr_std").unwrap();
-        let r_spva_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_12_avg.lock().unwrap().view()).create("r_spva_12_avg").unwrap();
-        let r_spva_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_12_std.lock().unwrap().view()).create("r_spva_12_std").unwrap();
-        let r_spva_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_23_avg.lock().unwrap().view()).create("r_spva_23_avg").unwrap();
-        let r_spva_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_23_std.lock().unwrap().view()).create("r_spva_23_std").unwrap();
-        let r_spva_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_13_avg.lock().unwrap().view()).create("r_spva_13_avg").unwrap();
-        let r_spva_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_13_std.lock().unwrap().view()).create("r_spva_13_std").unwrap();
         let perf_seconds = hdf5_file.new_dataset_builder().with_data(&[time_performance]).create("perf_seconds").unwrap();
         HDF5Manager {
             hdf5_file,
@@ -283,6 +283,18 @@ impl HDF5Manager {
             r_cent_23_std,
             r_cent_13_avg,
             r_cent_13_std,
+            r_spva_avg,
+            r_spva_std,
+            r_spva_rr_avg,
+            r_spva_rr_std,
+            r_spva_nr_avg,
+            r_spva_nr_std,
+            r_spva_12_avg,
+            r_spva_12_std,
+            r_spva_23_avg,
+            r_spva_23_std,
+            r_spva_13_avg,
+            r_spva_13_std,
             r_effi_avg,
             r_effi_std,
             r_effi_rr_avg,
@@ -319,18 +331,6 @@ impl HDF5Manager {
             r_omeg_23_std,
             r_omeg_13_avg,
             r_omeg_13_std,
-            r_spva_avg,
-            r_spva_std,
-            r_spva_rr_avg,
-            r_spva_rr_std,
-            r_spva_nr_avg,
-            r_spva_nr_std,
-            r_spva_12_avg,
-            r_spva_12_std,
-            r_spva_23_avg,
-            r_spva_23_std,
-            r_spva_13_avg,
-            r_spva_13_std,
             perf_seconds,
         }
     }

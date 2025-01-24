@@ -314,6 +314,13 @@ impl ExperimentManager {
                     local_cent_23.accumulate(t, scenario_random_rewiring.overall_centralization - scenario_no_rewiring.overall_centralization);
                     local_cent_13.accumulate(t, scenario.overall_centralization - scenario_no_rewiring.overall_centralization);
 
+                    local_spva.accumulate(t, scenario.shortest_path_variance);
+                    local_spva_rr.accumulate(t, scenario_random_rewiring.shortest_path_variance);
+                    local_spva_nr.accumulate(t, scenario_no_rewiring.shortest_path_variance);
+                    local_spva_12.accumulate(t, scenario.shortest_path_variance - scenario_random_rewiring.shortest_path_variance);
+                    local_spva_23.accumulate(t, scenario_random_rewiring.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
+                    local_spva_13.accumulate(t, scenario.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
+                    
                     local_effi.accumulate(t, scenario.network_efficiency);
                     local_effi_rr.accumulate(t, scenario_random_rewiring.network_efficiency);
                     local_effi_nr.accumulate(t, scenario_no_rewiring.network_efficiency);
@@ -335,12 +342,6 @@ impl ExperimentManager {
                     local_omeg_23.accumulate(t, scenario_random_rewiring.omega - scenario_no_rewiring.omega);
                     local_omeg_13.accumulate(t, scenario.omega - scenario_no_rewiring.omega);
 
-                    local_spva.accumulate(t, scenario.shortest_path_variance);
-                    local_spva_rr.accumulate(t, scenario_random_rewiring.shortest_path_variance);
-                    local_spva_nr.accumulate(t, scenario_no_rewiring.shortest_path_variance);
-                    local_spva_12.accumulate(t, scenario.shortest_path_variance - scenario_random_rewiring.shortest_path_variance);
-                    local_spva_23.accumulate(t, scenario_random_rewiring.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
-                    local_spva_13.accumulate(t, scenario.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
 
                     scenario.step_forward();
                     scenario_random_rewiring.step_forward();
@@ -462,6 +463,24 @@ impl ExperimentManager {
                 self.r_cent_13_avg.lock().unwrap()[&ix_dyn] = local_cent_13.avg[t];
                 self.r_cent_13_std.lock().unwrap()[&ix_dyn] = local_cent_13.std[t];
                 
+                self.r_spva_avg.lock().unwrap()[&ix_dyn] = local_spva.avg[t];
+                self.r_spva_std.lock().unwrap()[&ix_dyn] = local_spva.std[t];
+
+                self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] = local_spva_rr.avg[t];
+                self.r_spva_rr_std.lock().unwrap()[&ix_dyn] = local_spva_rr.std[t];
+
+                self.r_spva_nr_avg.lock().unwrap()[&ix_dyn] = local_spva_nr.avg[t];
+                self.r_spva_nr_std.lock().unwrap()[&ix_dyn] = local_spva_nr.std[t];
+
+                self.r_spva_12_avg.lock().unwrap()[&ix_dyn] = local_spva_12.avg[t];
+                self.r_spva_12_std.lock().unwrap()[&ix_dyn] = local_spva_12.std[t];
+
+                self.r_spva_23_avg.lock().unwrap()[&ix_dyn] = local_spva_23.avg[t];
+                self.r_spva_23_std.lock().unwrap()[&ix_dyn] = local_spva_23.std[t];
+
+                self.r_spva_13_avg.lock().unwrap()[&ix_dyn] = local_spva_13.avg[t];
+                self.r_spva_13_std.lock().unwrap()[&ix_dyn] = local_spva_13.std[t];
+                
                 self.r_effi_avg.lock().unwrap()[&ix_dyn] = local_effi.avg[t];
                 self.r_effi_std.lock().unwrap()[&ix_dyn] = local_effi.std[t];
                 
@@ -515,25 +534,6 @@ impl ExperimentManager {
 
                 self.r_omeg_13_avg.lock().unwrap()[&ix_dyn] = local_omeg_13.avg[t];
                 self.r_omeg_13_std.lock().unwrap()[&ix_dyn] = local_omeg_13.std[t];
-
-                self.r_spva_avg.lock().unwrap()[&ix_dyn] = local_spva.avg[t];
-                self.r_spva_std.lock().unwrap()[&ix_dyn] = local_spva.std[t];
-
-                self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] = local_spva_rr.avg[t];
-                self.r_spva_rr_std.lock().unwrap()[&ix_dyn] = local_spva_rr.std[t];
-
-                self.r_spva_nr_avg.lock().unwrap()[&ix_dyn] = local_spva_nr.avg[t];
-                self.r_spva_nr_std.lock().unwrap()[&ix_dyn] = local_spva_nr.std[t];
-
-                self.r_spva_12_avg.lock().unwrap()[&ix_dyn] = local_spva_12.avg[t];
-                self.r_spva_12_std.lock().unwrap()[&ix_dyn] = local_spva_12.std[t];
-
-                self.r_spva_23_avg.lock().unwrap()[&ix_dyn] = local_spva_23.avg[t];
-                self.r_spva_23_std.lock().unwrap()[&ix_dyn] = local_spva_23.std[t];
-
-                self.r_spva_13_avg.lock().unwrap()[&ix_dyn] = local_spva_13.avg[t];
-                self.r_spva_13_std.lock().unwrap()[&ix_dyn] = local_spva_13.std[t];
-                
             }
             },
         );

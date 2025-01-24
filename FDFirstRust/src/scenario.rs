@@ -376,7 +376,7 @@ impl Scenario {
             self.performance_avg += self.performance_of[focal] as f64;
         }
         self.performance_avg /= params::M_N as f64;
-        self.network_analyzer.set_network_metrics();
+        self.network_analyzer.set_network_metrics(&self.network);
         self.average_path_length = self.network_analyzer.get_average_path_length();
         self.network_efficiency = self.network_analyzer.get_network_efficiency();
         self.global_clustering_watts_strogatz = self.network_analyzer.get_global_clustering_watts_strogatz();
