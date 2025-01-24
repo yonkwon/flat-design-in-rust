@@ -11,6 +11,7 @@ fn main() -> std::io::Result<()> {
     if params::MAX_THREAD < available_parallelism().unwrap().get() {
         rayon::ThreadPoolBuilder::new().num_threads(params::MAX_THREAD).build_global().unwrap();
     }
+    
     params::initialize_once_cells();
     let mut experiment_manager = experiment_manager::ExperimentManager::new();
     if params::PRINT_NETWORK_CSV {

@@ -199,10 +199,9 @@ impl ExperimentManager {
                 .progress_chars("#>-"),
         );
         println!(
-            "{}\tInitiated: Running Experiments for {} combinations with {} iterations each",
+            "{}\tInitiated: Running Experiments - Target file: {:?}",
             Local::now().format("%Y-%m-%d %H:%M:%S"),
-            length_combination / params::ITERATION,
-            params::ITERATION
+            params::FILE_NAME,
         );
 
         //TODO: Create value list within each combination, then save it to ndarray after iteration. This way reduces the number of locks.
