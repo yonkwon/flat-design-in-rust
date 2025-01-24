@@ -200,7 +200,7 @@ impl ExperimentManager {
         );
         println!(
             "{}\tInitiated: Running Experiments for {} combinations with {} iterations each",
-            Local::now().format("%Y-%m-%d][%H:%M:%S"),
+            Local::now().format("%Y-%m-%d %H:%M:%S"),
             length_combination / params::ITERATION,
             params::ITERATION
         );
@@ -552,7 +552,7 @@ impl ExperimentManager {
                 );
                 println!(
                     "{}\tInitiated: Sampling Network in *.csv for {} combinations",
-                    Local::now().format("%Y-%m-%d][%H:%M:%S"),
+                    Local::now().format("%Y-%m-%d %H:%M:%S"),
                     length_combination
                 );
                 
