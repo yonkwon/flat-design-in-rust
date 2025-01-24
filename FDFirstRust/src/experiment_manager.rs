@@ -199,9 +199,9 @@ impl ExperimentManager {
                 .progress_chars("#>-"),
         );
         println!(
-            "{}\tInitiated: Running Experiments - Target file: {:?}",
+            "{}\tInitiated: Running Experiments - Target file: {}",
             Local::now().format("%Y-%m-%d %H:%M:%S"),
-            params::FILE_NAME,
+            (params::PARAM_STRING).clone(),
         );
 
         //TODO: Create value list within each combination, then save it to ndarray after iteration. This way reduces the number of locks.
