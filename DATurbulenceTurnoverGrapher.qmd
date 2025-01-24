@@ -1078,7 +1078,6 @@ ggsave(
 ```
 
 ## Small World Q and Omega Prime
-
 ```{r fig}
 set_fig_width <- 6
 set_fig_height <- 4
@@ -1249,7 +1248,6 @@ tick_label_size <- 8
 set_fig_h <- 1
 
 set_fig_mech <- 1:data$para_l_mech
-set_fig_mech <- 1:2
 set_fig_span <- 1:data$para_l_span
 
 set_fig_enforcement <- data$para_l_enfo
