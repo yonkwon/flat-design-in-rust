@@ -12,6 +12,7 @@ use crate::network_analyzer::{self, NetworkAnalyzer};
 // --------------------------------------------------------------------
 pub struct Scenario {
     // Random generator
+    pub is_stale: bool,
     pub rng: rand::rngs::ThreadRng,
     pub tic: usize,
 
@@ -74,6 +75,7 @@ impl Scenario {
         turbulence_rate: f64,
         turnover_rate: f64,
     ) -> Self {
+        let is_stale = false;
         let tic =  SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize;
         let rng = thread_rng();
         let reality = vec![vec![false; params::M_IN_BUNDLE]; params::M_OF_BUNDLE];
@@ -101,6 +103,7 @@ impl Scenario {
         }
 
         let mut scenario = Scenario{
+            is_stale,
             rng,
             tic,
             social_dynamics,
@@ -363,7 +366,9 @@ impl Scenario {
                 self.do_rewiring(params::INFORMAL_REWIRING_NUM, params::INFORMAL_REWIRING_NUM);
             }
         }
-        self.do_learning();
+        if !self.is_stale{
+            self.do_learning();
+        }
         self.set_outcome();
         if self.turnover_rate > 0.0 {
             self.do_turnover();
@@ -371,8 +376,13 @@ impl Scenario {
     }
 
     pub fn set_outcome(&mut self) {
-        self.performance_avg = 0.0;
-        for focal in 0..params::N {
+        self.is_stale = true;
+        let performance_of_first = self.performance_of[0];
+        self.performance_avg = performance_of_first as f64;
+        for focal in 1..params::N {
+            if self.performance_of[focal] != performance_of_first { 
+                self.is_stale = false;
+            }
             self.performance_avg += self.performance_of[focal] as f64;
         }
         self.performance_avg /= params::M_N as f64;
@@ -729,6 +739,7 @@ impl Scenario {
 
     /// doTurnover(): each individual leaves with probability turnoverRate; replaced by a new random one.
     pub fn do_turnover(&mut self) {
+        self.is_stale = false;
         for focal in 0..params::N {
             if self.rng.gen::<f64>() < self.turnover_rate {
                 for bundle in 0..params::M_OF_BUNDLE {
@@ -743,6 +754,7 @@ impl Scenario {
 
     /// doTurbulence(): each dimension of reality is flipped with probability turbulenceRate.
     pub fn do_turbulence(&mut self) {
+        self.is_stale = false;
         for bundle in 0..params::M_OF_BUNDLE {
             for element in 0..params::M_IN_BUNDLE{
                 if self.rng.gen::<f64>() < self.turbulence_rate {

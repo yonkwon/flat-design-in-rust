@@ -17,7 +17,7 @@ pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
-pub static TIME: usize = 501;
+pub static TIME: usize = 200;
 
 pub static INFORMAL_MAX_NUM: isize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
