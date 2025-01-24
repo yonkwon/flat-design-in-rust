@@ -372,16 +372,16 @@ impl Scenario {
 
     pub fn set_outcome(&mut self) {
         self.performance_avg = 0.0;
+        for focal in 0..params::N {
+            self.performance_avg += self.performance_of[focal] as f64;
+        }
+        self.performance_avg /= params::M_N as f64;
         self.network_analyzer.set_network_metrics();
         self.average_path_length = self.network_analyzer.get_average_path_length();
         self.network_efficiency = self.network_analyzer.get_network_efficiency();
         self.global_clustering_watts_strogatz = self.network_analyzer.get_global_clustering_watts_strogatz();
         self.overall_centralization = self.network_analyzer.get_global_closeness_centralization();
         self.shortest_path_variance = self.network_analyzer.get_shortest_path_variance();
-        for focal in 0..params::N {
-            self.performance_avg += self.performance_of[focal] as f64;
-        }
-        self.performance_avg /= params::M_N as f64;
     }
 
     pub fn set_preference_score(&mut self) {
@@ -671,8 +671,8 @@ impl Scenario {
                 if self.reality[bundle][element] != belief_of_focal[bundle][element] {
                     continue 'bundle;
                 }
-                performance_of_focal += params::M_IN_BUNDLE;
             }
+            performance_of_focal += params::M_IN_BUNDLE;
         }
         performance_of_focal
     }
