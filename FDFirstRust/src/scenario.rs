@@ -486,8 +486,9 @@ impl Scenario {
     }
 
     fn do_tie_break(&mut self, mut num_break: usize) {
+        let mut probability = vec![0.0; params::N_DYAD];
         while num_break > 0 {
-            let mut probability = vec![0.0; params::N_DYAD];
+            probability.fill(0.0);
             let mut dyad2_cut_weight_max = f64::MIN;
             // Calculate rewiring weights
             for (d, (focal, target)) in self.iterator_dyad.iter().enumerate() {

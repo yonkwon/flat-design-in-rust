@@ -12,7 +12,7 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 102;
+pub static ITERATION: usize = 100;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
@@ -21,7 +21,7 @@ pub static TIME: usize = 501;
 
 pub static INFORMAL_MAX_NUM: isize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
-pub static INFORMAL_REWIRING_PROP: f64 = 0.1;
+pub static INFORMAL_REWIRING_PROP: f64 = 0.2;
 
 pub static N: usize = 100;
 pub static M_OF_BUNDLE: usize = 20;

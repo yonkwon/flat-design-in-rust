@@ -1412,7 +1412,6 @@ ggsave(
 # Network Graph
 
 ## Network Setup
-
 ```{r netSet}
 # Libraries for network graphs
 library(igraph)
@@ -1573,14 +1572,13 @@ files2print(choose.files())
 ## Network Metric
 
 ```{r}
-num_edges <- data$para.informal.init.n + data$para.n - 1
-p <- num_edges / (data$para.n * (data$para.n - 1) / 2)
+num_edges <- data$para_informal_init_n + data$para_n - 1
+p <- num_edges / (data$para_n * (data$para_n - 1) / 2)
 
-length_random <- log(data$para.n) / log(p * (data$para.n - 1))
+length_random <- log(data$para_n) / log(p * (data$para_n - 1))
 clustering_random <- p
-distvar_random <- log(data$para.n) / (log(data$para.n * p)) * (log(data$para.n * p))
+distvar_random <- log(data$para_n) / (log(data$para_n * p)) * (log(data$para_n * p))
 
-file_net <- choose.files()
 list_file_net <- choose.files()
 net_metric <- data.frame()
 for (file_net in list_file_net) {
