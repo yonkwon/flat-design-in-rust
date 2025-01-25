@@ -32,8 +32,8 @@ pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 pub static LENGTH_SPAN: usize = SPAN.len();
 
 // pub static ENFORCEMENT: [f64; 4] = [0.0, 0.5, 0.8, 1.0];
-pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
-// pub static ENFORCEMENT: [f64; 1] = [1.0];
+// pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
+pub static ENFORCEMENT: [f64; 1] = [1.0];
 pub static LENGTH_ENFORCEMENT: usize = ENFORCEMENT.len();
 
 // pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
