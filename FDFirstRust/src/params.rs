@@ -12,7 +12,7 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = false;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 1_000;
+pub static ITERATION: usize = 10_000;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;

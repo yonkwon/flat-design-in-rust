@@ -5,6 +5,8 @@ editor: visual
 ---
 
 # Setup & Data Import
+
+## File Path and Library Setup
 ```{r setup, include=FALSE}
 rm(list = ls()) # Cleaning R environment
 setwd(dirname(rstudioapi::getSourceEditorContext()$path)) # Set SRC DIR as WD
@@ -27,7 +29,6 @@ library(geomtextpath) # text + arrow
 ```
 
 ## Data Import & User Config
-
 ```{r import}
 data <- H5Fopen(file)
 fig_id <- paste0(
@@ -430,29 +431,45 @@ x_tick_label <- data$para_v_span
 x_tick_label <- as.character(x_tick_label)
 x_tick_label[which.min(x_tick_label)] <- paste0(x_tick_label[which.min(x_tick_label)], "\n\u2190 Tall")
 x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_label)], "\nFlat \u2192")
+# 
+# param1_label <- "Average Distance Variance"
+# param1_value_sc <- aperm(data$r_spva_avg)
+# param1_value_nr <- aperm(data$r_spva_nr_avg)
+# param1_value_rr <- aperm(data$r_spva_rr_avg)
+# param1_label <- "Clustering Coefficient"
+# param1_value_sc <- aperm(data$r_clws_avg)
+# param1_value_nr <- aperm(data$r_clws_nr_avg)
+# param1_value_rr <- aperm(data$r_clws_rr_avg)
+# param1_label <- "Small Worldness"
+# param1_value_sc <- aperm(data$r_omeg_avg)
+# param1_value_nr <- aperm(data$r_omeg_nr_avg)
+# param1_value_rr <- aperm(data$r_omeg_rr_avg)
+param1_label <- "Triadic Centralization"
+param1_value_sc <- aperm(data$r_tria_avg)
+param1_value_nr <- aperm(data$r_tria_nr_avg)
+param1_value_rr <- aperm(data$r_tria_rr_avg)
+# param1_label <- "Small World Q"
+# param1_value_sc <- aperm(data$r_sigm_avg)
+# param1_value_nr <- aperm(data$r_sigm_nr_avg)
+# param1_value_rr <- aperm(data$r_sigm_rr_avg)
 
-param1_label <- "Average Distance Variance"
-param1_value_sc <- aperm(data$r_spva_avg)
-param1_value_nr <- aperm(data$r_spva_nr_avg)
-param1_value_rr <- aperm(data$r_spva_rr_avg)
-param1_label <- "Clustering Coefficient"
-param1_value_sc <- aperm(data$r_clws_avg)
-param1_value_nr <- aperm(data$r_clws_nr_avg)
-param1_value_rr <- aperm(data$r_clws_rr_avg)
-param1_label <- "Small Worldness"
-param1_value_sc <- aperm(data$r_omeg_avg)
-param1_value_nr <- aperm(data$r_omeg_nr_avg)
-param1_value_rr <- aperm(data$r_omeg_rr_avg)
 
-
-param2_label <- "Closeness Centralization"
-param2_value_sc <- aperm(data$r_cent_avg)
-param2_value_nr <- aperm(data$r_cent_nr_avg)
-param2_value_rr <- aperm(data$r_cent_rr_avg)
-param2_label <- "Triadic Centralization"
-param2_value_sc <- aperm(data$r_tria_avg)
-param2_value_nr <- aperm(data$r_tria_nr_avg)
-param2_value_rr <- aperm(data$r_tria_rr_avg)
+# param2_label <- "Closeness Centralization"
+# param2_value_sc <- aperm(data$r_cent_avg)
+# param2_value_nr <- aperm(data$r_cent_nr_avg)
+# param2_value_rr <- aperm(data$r_cent_rr_avg)
+# param2_label <- "Triadic Centralization"
+# param2_value_sc <- aperm(data$r_tria_avg)
+# param2_value_nr <- aperm(data$r_tria_nr_avg)
+# param2_value_rr <- aperm(data$r_tria_rr_avg)
+# param2_label <- "Average Distance Variance"
+# param2_value_sc <- aperm(data$r_spva_avg)
+# param2_value_nr <- aperm(data$r_spva_nr_avg)
+# param2_value_rr <- aperm(data$r_spva_rr_avg)
+param2_label <- "Small World Q"
+param2_value_sc <- aperm(data$r_sigm_avg)
+param2_value_nr <- aperm(data$r_sigm_nr_avg)
+param2_value_rr <- aperm(data$r_sigm_rr_avg)
 
 param_label <- c(param1_label, param2_label)
 param_label <- factor(param_label, levels = param_label)
