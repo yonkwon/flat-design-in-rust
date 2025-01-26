@@ -62,6 +62,18 @@ pub struct HDF5Manager {
     pub r_cent_23_std: Dataset,
     pub r_cent_13_avg: Dataset,
     pub r_cent_13_std: Dataset,
+    pub r_tria_avg: Dataset,
+    pub r_tria_std: Dataset,
+    pub r_tria_rr_avg: Dataset,
+    pub r_tria_rr_std: Dataset,
+    pub r_tria_nr_avg: Dataset,
+    pub r_tria_nr_std: Dataset,
+    pub r_tria_12_avg: Dataset,
+    pub r_tria_12_std: Dataset,
+    pub r_tria_23_avg: Dataset,
+    pub r_tria_23_std: Dataset,
+    pub r_tria_13_avg: Dataset,
+    pub r_tria_13_std: Dataset,
     pub r_effi_avg: Dataset,
     pub r_effi_std: Dataset,
     pub r_effi_rr_avg: Dataset,
@@ -174,6 +186,18 @@ impl HDF5Manager {
         let r_cent_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_23_std.lock().unwrap().view()).create("r_cent_23_std").unwrap();
         let r_cent_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_13_avg.lock().unwrap().view()).create("r_cent_13_avg").unwrap();
         let r_cent_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_cent_13_std.lock().unwrap().view()).create("r_cent_13_std").unwrap();
+        let r_tria_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_avg.lock().unwrap().view()).create("r_tria_avg").unwrap();
+        let r_tria_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_std.lock().unwrap().view()).create("r_tria_std").unwrap();
+        let r_tria_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_rr_avg.lock().unwrap().view()).create("r_tria_rr_avg").unwrap();
+        let r_tria_rr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_rr_std.lock().unwrap().view()).create("r_tria_rr_std").unwrap();
+        let r_tria_nr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_nr_avg.lock().unwrap().view()).create("r_tria_nr_avg").unwrap();
+        let r_tria_nr_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_nr_std.lock().unwrap().view()).create("r_tria_nr_std").unwrap();
+        let r_tria_12_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_12_avg.lock().unwrap().view()).create("r_tria_12_avg").unwrap();
+        let r_tria_12_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_12_std.lock().unwrap().view()).create("r_tria_12_std").unwrap();
+        let r_tria_23_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_23_avg.lock().unwrap().view()).create("r_tria_23_avg").unwrap();
+        let r_tria_23_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_23_std.lock().unwrap().view()).create("r_tria_23_std").unwrap();
+        let r_tria_13_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_13_avg.lock().unwrap().view()).create("r_tria_13_avg").unwrap();
+        let r_tria_13_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_tria_13_std.lock().unwrap().view()).create("r_tria_13_std").unwrap();
         let r_spva_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_avg.lock().unwrap().view()).create("r_spva_avg").unwrap();
         let r_spva_std = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_std.lock().unwrap().view()).create("r_spva_std").unwrap();
         let r_spva_rr_avg = hdf5_file.new_dataset_builder().with_data(&experiment_manager.r_spva_rr_avg.lock().unwrap().view()).create("r_spva_rr_avg").unwrap();
@@ -282,7 +306,19 @@ impl HDF5Manager {
             r_cent_23_avg,
             r_cent_23_std,
             r_cent_13_avg,
-            r_cent_13_std,
+            r_cent_13_std,   
+            r_tria_avg,
+            r_tria_std,
+            r_tria_rr_avg,
+            r_tria_rr_std,
+            r_tria_nr_avg,
+            r_tria_nr_std,
+            r_tria_12_avg,
+            r_tria_12_std,
+            r_tria_23_avg,
+            r_tria_23_std,
+            r_tria_13_avg,
+            r_tria_13_std,
             r_spva_avg,
             r_spva_std,
             r_spva_rr_avg,

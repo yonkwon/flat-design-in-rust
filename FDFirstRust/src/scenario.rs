@@ -56,7 +56,8 @@ pub struct Scenario {
     pub average_path_length: f64,
     pub network_efficiency: f64,
     pub global_clustering_watts_strogatz: f64,
-    pub overall_centralization: f64,
+    pub closeness_centralization: f64,
+    pub triadic_centralization: f64,
     pub shortest_path_variance: f64,
     pub sigma: f64,
     pub omega: f64,
@@ -134,7 +135,8 @@ impl Scenario {
             average_path_length: 0.0,
             network_efficiency: 0.0,
             global_clustering_watts_strogatz: 0.0,
-            overall_centralization: 0.0,
+            closeness_centralization: 0.0,
+            triadic_centralization: 0.0,
             shortest_path_variance: 0.0,
             iterator_focal_index,
             iterator_target_index,
@@ -390,7 +392,8 @@ impl Scenario {
         self.average_path_length = self.network_analyzer.get_average_path_length();
         self.network_efficiency = self.network_analyzer.get_network_efficiency();
         self.global_clustering_watts_strogatz = self.network_analyzer.get_global_clustering_watts_strogatz();
-        self.overall_centralization = self.network_analyzer.get_global_closeness_centralization();
+        self.closeness_centralization = self.network_analyzer.get_closeness_centralization();
+        self.triadic_centralization = self.network_analyzer.get_triadic_centralization();
         self.shortest_path_variance = self.network_analyzer.get_shortest_path_variance();
     }
 

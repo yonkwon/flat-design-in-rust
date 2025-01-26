@@ -45,6 +45,18 @@ pub struct ExperimentManager {
     pub r_cent_nr_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
     pub r_cent_rr_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
     pub r_cent_rr_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_12_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_12_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_23_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_23_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_13_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_13_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_nr_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_nr_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_rr_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
+    pub r_tria_rr_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
     pub r_effi_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
     pub r_effi_std: Arc::<Mutex<ndarray::ArrayD<f64>>>,
     pub r_effi_12_avg: Arc::<Mutex<ndarray::ArrayD<f64>>>,
@@ -137,6 +149,18 @@ impl ExperimentManager {
             r_cent_nr_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
             r_cent_rr_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
             r_cent_rr_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_12_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_12_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_23_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_23_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_13_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_13_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_nr_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_nr_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_rr_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
+            r_tria_rr_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
             r_effi_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
             r_effi_std: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
             r_effi_12_avg: Arc::new(Mutex::new(ArrayD::zeros(shape.clone()))),
@@ -245,6 +269,13 @@ impl ExperimentManager {
             let mut local_cent_12 = OutcomeVariable::new();
             let mut local_cent_23 = OutcomeVariable::new();
             let mut local_cent_13 = OutcomeVariable::new();
+            
+            let mut local_tria = OutcomeVariable::new();
+            let mut local_tria_rr = OutcomeVariable::new();
+            let mut local_tria_nr = OutcomeVariable::new();
+            let mut local_tria_12 = OutcomeVariable::new();
+            let mut local_tria_23 = OutcomeVariable::new();
+            let mut local_tria_13 = OutcomeVariable::new();
 
             let mut local_effi = OutcomeVariable::new();
             let mut local_effi_rr = OutcomeVariable::new();
@@ -306,12 +337,19 @@ impl ExperimentManager {
                     local_clws_23.accumulate(t, scenario_random_rewiring.global_clustering_watts_strogatz - scenario_no_rewiring.global_clustering_watts_strogatz);
                     local_clws_13.accumulate(t, scenario.global_clustering_watts_strogatz - scenario_no_rewiring.global_clustering_watts_strogatz);
 
-                    local_cent.accumulate(t, scenario.overall_centralization);
-                    local_cent_rr.accumulate(t, scenario_random_rewiring.overall_centralization);
-                    local_cent_nr.accumulate(t, scenario_no_rewiring.overall_centralization);
-                    local_cent_12.accumulate(t, scenario.overall_centralization - scenario_random_rewiring.overall_centralization);
-                    local_cent_23.accumulate(t, scenario_random_rewiring.overall_centralization - scenario_no_rewiring.overall_centralization);
-                    local_cent_13.accumulate(t, scenario.overall_centralization - scenario_no_rewiring.overall_centralization);
+                    local_cent.accumulate(t, scenario.closeness_centralization);
+                    local_cent_rr.accumulate(t, scenario_random_rewiring.closeness_centralization);
+                    local_cent_nr.accumulate(t, scenario_no_rewiring.closeness_centralization);
+                    local_cent_12.accumulate(t, scenario.closeness_centralization - scenario_random_rewiring.closeness_centralization);
+                    local_cent_23.accumulate(t, scenario_random_rewiring.closeness_centralization - scenario_no_rewiring.closeness_centralization);
+                    local_cent_13.accumulate(t, scenario.closeness_centralization - scenario_no_rewiring.closeness_centralization);
+
+                    local_tria.accumulate(t, scenario.triadic_centralization);
+                    local_tria_rr.accumulate(t, scenario_random_rewiring.triadic_centralization);
+                    local_tria_nr.accumulate(t, scenario_no_rewiring.triadic_centralization);
+                    local_tria_12.accumulate(t, scenario.triadic_centralization - scenario_random_rewiring.triadic_centralization);
+                    local_tria_23.accumulate(t, scenario_random_rewiring.triadic_centralization - scenario_no_rewiring.triadic_centralization);
+                    local_tria_13.accumulate(t, scenario.triadic_centralization - scenario_no_rewiring.triadic_centralization);
 
                     local_spva.accumulate(t, scenario.shortest_path_variance);
                     local_spva_rr.accumulate(t, scenario_random_rewiring.shortest_path_variance);
@@ -376,6 +414,13 @@ impl ExperimentManager {
             local_cent_23.finalize();
             local_cent_13.finalize();
             
+            local_tria.finalize();
+            local_tria_rr.finalize();
+            local_tria_nr.finalize();
+            local_tria_12.finalize();
+            local_tria_23.finalize();
+            local_tria_13.finalize();
+            
             local_spva.finalize();
             local_spva_rr.finalize();
             local_spva_nr.finalize();
@@ -410,127 +455,105 @@ impl ExperimentManager {
                 let ix_dyn = IxDyn(&indices_t);
                 self.r_perf_avg.lock().unwrap()[&ix_dyn] = local_perf.avg[t];
                 self.r_perf_std.lock().unwrap()[&ix_dyn] = local_perf.std[t];
-                
                 self.r_perf_rr_avg.lock().unwrap()[&ix_dyn] = local_perf_rr.avg[t];
                 self.r_perf_rr_std.lock().unwrap()[&ix_dyn] = local_perf_rr.std[t];
-                
                 self.r_perf_nr_avg.lock().unwrap()[&ix_dyn] = local_perf_nr.avg[t];
                 self.r_perf_nr_std.lock().unwrap()[&ix_dyn] = local_perf_nr.std[t];
-                
                 self.r_perf_12_avg.lock().unwrap()[&ix_dyn] = local_perf_12.avg[t];
                 self.r_perf_12_std.lock().unwrap()[&ix_dyn] = local_perf_12.std[t];
-                
                 self.r_perf_23_avg.lock().unwrap()[&ix_dyn] = local_perf_23.avg[t];
                 self.r_perf_23_std.lock().unwrap()[&ix_dyn] = local_perf_23.std[t];
-                
                 self.r_perf_13_avg.lock().unwrap()[&ix_dyn] = local_perf_13.avg[t];
                 self.r_perf_13_std.lock().unwrap()[&ix_dyn] = local_perf_13.std[t];
                 
                 self.r_clws_avg.lock().unwrap()[&ix_dyn] = local_clws.avg[t];
                 self.r_clws_std.lock().unwrap()[&ix_dyn] = local_clws.std[t];
-                
                 self.r_clws_rr_avg.lock().unwrap()[&ix_dyn] = local_clws_rr.avg[t];
                 self.r_clws_rr_std.lock().unwrap()[&ix_dyn] = local_clws_rr.std[t];
-                
                 self.r_clws_nr_avg.lock().unwrap()[&ix_dyn] = local_clws_nr.avg[t];
                 self.r_clws_nr_std.lock().unwrap()[&ix_dyn] = local_clws_nr.std[t];
-                
                 self.r_clws_12_avg.lock().unwrap()[&ix_dyn] = local_clws_12.avg[t];
                 self.r_clws_12_std.lock().unwrap()[&ix_dyn] = local_clws_12.std[t];
-                
                 self.r_clws_23_avg.lock().unwrap()[&ix_dyn] = local_clws_23.avg[t];
                 self.r_clws_23_std.lock().unwrap()[&ix_dyn] = local_clws_23.std[t];
-                
                 self.r_clws_13_avg.lock().unwrap()[&ix_dyn] = local_clws_13.avg[t];
                 self.r_clws_13_std.lock().unwrap()[&ix_dyn] = local_clws_13.std[t];
                 
                 self.r_cent_avg.lock().unwrap()[&ix_dyn] = local_cent.avg[t];
                 self.r_cent_std.lock().unwrap()[&ix_dyn] = local_cent.std[t];
-                
                 self.r_cent_rr_avg.lock().unwrap()[&ix_dyn] = local_cent_rr.avg[t];
                 self.r_cent_rr_std.lock().unwrap()[&ix_dyn] = local_cent_rr.std[t];
-                
                 self.r_cent_nr_avg.lock().unwrap()[&ix_dyn] = local_cent_nr.avg[t];
                 self.r_cent_nr_std.lock().unwrap()[&ix_dyn] = local_cent_nr.std[t];
-                
                 self.r_cent_12_avg.lock().unwrap()[&ix_dyn] = local_cent_12.avg[t];
                 self.r_cent_12_std.lock().unwrap()[&ix_dyn] = local_cent_12.std[t];
-                
                 self.r_cent_23_avg.lock().unwrap()[&ix_dyn] = local_cent_23.avg[t];
                 self.r_cent_23_std.lock().unwrap()[&ix_dyn] = local_cent_23.std[t];
-                
                 self.r_cent_13_avg.lock().unwrap()[&ix_dyn] = local_cent_13.avg[t];
                 self.r_cent_13_std.lock().unwrap()[&ix_dyn] = local_cent_13.std[t];
                 
+                self.r_tria_avg.lock().unwrap()[&ix_dyn] = local_tria.avg[t];
+                self.r_tria_std.lock().unwrap()[&ix_dyn] = local_tria.std[t];
+                self.r_tria_rr_avg.lock().unwrap()[&ix_dyn] = local_tria_rr.avg[t];
+                self.r_tria_rr_std.lock().unwrap()[&ix_dyn] = local_tria_rr.std[t];
+                self.r_tria_nr_avg.lock().unwrap()[&ix_dyn] = local_tria_nr.avg[t];
+                self.r_tria_nr_std.lock().unwrap()[&ix_dyn] = local_tria_nr.std[t];
+                self.r_tria_12_avg.lock().unwrap()[&ix_dyn] = local_tria_12.avg[t];
+                self.r_tria_12_std.lock().unwrap()[&ix_dyn] = local_tria_12.std[t];
+                self.r_tria_23_avg.lock().unwrap()[&ix_dyn] = local_tria_23.avg[t];
+                self.r_tria_23_std.lock().unwrap()[&ix_dyn] = local_tria_23.std[t];
+                self.r_tria_13_avg.lock().unwrap()[&ix_dyn] = local_tria_13.avg[t];
+                self.r_tria_13_std.lock().unwrap()[&ix_dyn] = local_tria_13.std[t];
+                
                 self.r_spva_avg.lock().unwrap()[&ix_dyn] = local_spva.avg[t];
                 self.r_spva_std.lock().unwrap()[&ix_dyn] = local_spva.std[t];
-
                 self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] = local_spva_rr.avg[t];
                 self.r_spva_rr_std.lock().unwrap()[&ix_dyn] = local_spva_rr.std[t];
-
                 self.r_spva_nr_avg.lock().unwrap()[&ix_dyn] = local_spva_nr.avg[t];
                 self.r_spva_nr_std.lock().unwrap()[&ix_dyn] = local_spva_nr.std[t];
-
                 self.r_spva_12_avg.lock().unwrap()[&ix_dyn] = local_spva_12.avg[t];
                 self.r_spva_12_std.lock().unwrap()[&ix_dyn] = local_spva_12.std[t];
-
                 self.r_spva_23_avg.lock().unwrap()[&ix_dyn] = local_spva_23.avg[t];
                 self.r_spva_23_std.lock().unwrap()[&ix_dyn] = local_spva_23.std[t];
-
                 self.r_spva_13_avg.lock().unwrap()[&ix_dyn] = local_spva_13.avg[t];
                 self.r_spva_13_std.lock().unwrap()[&ix_dyn] = local_spva_13.std[t];
                 
                 self.r_effi_avg.lock().unwrap()[&ix_dyn] = local_effi.avg[t];
                 self.r_effi_std.lock().unwrap()[&ix_dyn] = local_effi.std[t];
-                
                 self.r_effi_rr_avg.lock().unwrap()[&ix_dyn] = local_effi_rr.avg[t];
                 self.r_effi_rr_std.lock().unwrap()[&ix_dyn] = local_effi_rr.std[t];
-                
                 self.r_effi_nr_avg.lock().unwrap()[&ix_dyn] = local_effi_nr.avg[t];
                 self.r_effi_nr_std.lock().unwrap()[&ix_dyn] = local_effi_nr.std[t];
-                
                 self.r_effi_12_avg.lock().unwrap()[&ix_dyn] = local_effi_12.avg[t];
                 self.r_effi_12_std.lock().unwrap()[&ix_dyn] = local_effi_12.std[t];
-                
                 self.r_effi_23_avg.lock().unwrap()[&ix_dyn] = local_effi_23.avg[t];
                 self.r_effi_23_std.lock().unwrap()[&ix_dyn] = local_effi_23.std[t];
-                
                 self.r_effi_13_avg.lock().unwrap()[&ix_dyn] = local_effi_13.avg[t];
                 self.r_effi_13_std.lock().unwrap()[&ix_dyn] = local_effi_13.std[t];
                 
                 self.r_sigm_avg.lock().unwrap()[&ix_dyn] = local_sigm.avg[t];
                 self.r_sigm_std.lock().unwrap()[&ix_dyn] = local_sigm.std[t];
-                
                 self.r_sigm_rr_avg.lock().unwrap()[&ix_dyn] = local_sigm_rr.avg[t];
                 self.r_sigm_rr_std.lock().unwrap()[&ix_dyn] = local_sigm_rr.std[t];
-                
                 self.r_sigm_nr_avg.lock().unwrap()[&ix_dyn] = local_sigm_nr.avg[t];
                 self.r_sigm_nr_std.lock().unwrap()[&ix_dyn] = local_sigm_nr.std[t];
-                
                 self.r_sigm_12_avg.lock().unwrap()[&ix_dyn] = local_sigm_12.avg[t];
                 self.r_sigm_12_std.lock().unwrap()[&ix_dyn] = local_sigm_12.std[t];
-                
                 self.r_sigm_23_avg.lock().unwrap()[&ix_dyn] = local_sigm_23.avg[t];
                 self.r_sigm_23_std.lock().unwrap()[&ix_dyn] = local_sigm_23.std[t];
-                
                 self.r_sigm_13_avg.lock().unwrap()[&ix_dyn] = local_sigm_13.avg[t];
                 self.r_sigm_13_std.lock().unwrap()[&ix_dyn] = local_sigm_13.std[t];
-                
+
                 self.r_omeg_avg.lock().unwrap()[&ix_dyn] = local_omeg.avg[t];
                 self.r_omeg_std.lock().unwrap()[&ix_dyn] = local_omeg.std[t];
-
                 self.r_omeg_rr_avg.lock().unwrap()[&ix_dyn] = local_omeg_rr.avg[t];
                 self.r_omeg_rr_std.lock().unwrap()[&ix_dyn] = local_omeg_rr.std[t];
-
                 self.r_omeg_nr_avg.lock().unwrap()[&ix_dyn] = local_omeg_nr.avg[t];
                 self.r_omeg_nr_std.lock().unwrap()[&ix_dyn] = local_omeg_nr.std[t];
-
                 self.r_omeg_12_avg.lock().unwrap()[&ix_dyn] = local_omeg_12.avg[t];
                 self.r_omeg_12_std.lock().unwrap()[&ix_dyn] = local_omeg_12.std[t];
-
                 self.r_omeg_23_avg.lock().unwrap()[&ix_dyn] = local_omeg_23.avg[t];
                 self.r_omeg_23_std.lock().unwrap()[&ix_dyn] = local_omeg_23.std[t];
-
                 self.r_omeg_13_avg.lock().unwrap()[&ix_dyn] = local_omeg_13.avg[t];
                 self.r_omeg_13_std.lock().unwrap()[&ix_dyn] = local_omeg_13.std[t];
             }

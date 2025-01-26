@@ -9,7 +9,7 @@ pub static PRINT_NETWORK_CSV: bool = true;
 pub static RUN_ID: &str = "DATT";
 pub static RUN_DESC: &str = "Standard";
 
-pub static GET_GRAPH: bool = true;
+pub static GET_GRAPH: bool = false;
 pub static GET_MAT: bool = true;
 
 pub static ITERATION: usize = 1_000;
@@ -64,6 +64,8 @@ pub static NUM_ADDITION: usize = (N_DYAD as f64 * P_ADDITION) as usize;
 pub static CLOSENESS_CENTRALIZATION_DENOMINATOR: f64 = (N as f64 - 1.0) * (N as f64- 2.0)  / (2.0 * N as f64 - 3.0);
 pub static CLUSTERING_COEFFICIENT_RANDOM: f64 = (INFORMAL_INITIAL_NUM + N - 1) as f64 / N_DYAD_F64;
 pub static CLUSTERING_COEFFICIENT_RANDOM_NO_SOCIAL_DYNAMICS: f64 = (N - 1) as f64 / N_DYAD_F64;
+
+pub static TRIADIC_CENTRALIZATION_DENOMINATOR: f64 = (N as f64 - 1.0) * ((N as f64 - 1.0) - 2.0);
 
 pub static AVERAGE_PATH_LENGTH_RANDOM: Lazy<f64> = Lazy::new(|| (N as f64).ln() / (CLUSTERING_COEFFICIENT_RANDOM * (N-1) as f64).ln());
 pub static AVERAGE_PATH_LENGTH_RANDOM_NO_SOCIAL_DYNAMICS: Lazy<f64> = Lazy::new(|| (N as f64).ln() / (CLUSTERING_COEFFICIENT_RANDOM_NO_SOCIAL_DYNAMICS * (N-1) as f64).ln());

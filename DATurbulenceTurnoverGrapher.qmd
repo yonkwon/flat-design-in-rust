@@ -234,7 +234,7 @@ fig <- ggplot(data = df_fig, mapping = axes) +
     # values = c("black", "#E81727", "#FF7F0E")
     values = c("#7e6148ff", "#e64b35ff", "#00a087ff")
   ) +
-  scale_shape_manual(breaks = label_legend, values = c(67, 78, 80)) +
+  scale_shape_manual(breaks = label_legend, values = c(4, 78, 80)) +
   scale_linetype_manual(
     breaks = label_legend,
     values = c("solid", "solid", "dashed")

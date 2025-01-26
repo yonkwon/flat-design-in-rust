@@ -10,7 +10,8 @@ pub struct NetworkAnalyzer {
     pub average_path_length: f64,
     pub network_efficiency: f64,
     pub global_clustering_watts_strogatz: f64,
-    pub global_closeness_centralization: f64,
+    pub centralization_closeness: f64,
+    pub centralization_triadic_participation: f64,
     pub shortest_path_variance: f64,
 }
 
@@ -30,8 +31,12 @@ impl NetworkAnalyzer {
         self.global_clustering_watts_strogatz
     }
 
-    pub fn get_global_closeness_centralization(&self) -> f64 {
-        self.global_closeness_centralization
+    pub fn get_closeness_centralization(&self) -> f64 {
+        self.centralization_closeness
+    }
+
+    pub fn get_triadic_centralization(&self) -> f64 {
+        self.centralization_triadic_participation
     }
 
     pub fn get_shortest_path_variance(&self) -> f64 {
@@ -45,7 +50,8 @@ impl NetworkAnalyzer {
             average_path_length: 0.0,
             network_efficiency: 0.0,
             global_clustering_watts_strogatz: 0.0,
-            global_closeness_centralization: 0.0,
+            centralization_closeness: 0.0,
+            centralization_triadic_participation: 0.0,
             shortest_path_variance: 0.0,
         }
     }
@@ -65,12 +71,15 @@ impl NetworkAnalyzer {
 
         self.average_path_length = 0.0;
         self.network_efficiency = 0.0;
-        self.global_closeness_centralization = 0.0;
+        self.centralization_closeness = 0.0;
+        self.centralization_triadic_participation = 0.0;
         self.shortest_path_variance = 0.0;
         self.global_clustering_watts_strogatz = 0.0;
 
-        let mut closeness_centrality_max = f64::MIN;
-        let mut closeness_centrality = vec![0.0; params::N];
+        let mut centrality_closeness = vec![0.0; params::N];
+        let mut centrality_closeness_max = f64::MIN;
+        let mut centrality_triadic = vec![0.0; params::N];
+        let mut centrality_triadic_max = f64::MIN;
         let mut shortest_path_sum = vec![0.0; params::N];
         let mut shortest_path_squared_sum = vec![0.0; params::N];
 
@@ -84,8 +93,8 @@ impl NetworkAnalyzer {
                         let dist_f = dist as f64;
                         self.average_path_length += dist_f;
                         self.network_efficiency += 1.0 / dist_f;
-                        closeness_centrality[i] += dist_f;
-                        closeness_centrality[j] += dist_f;
+                        centrality_closeness[i] += dist_f;
+                        centrality_closeness[j] += dist_f;
                         shortest_path_sum[i] += dist_f;
                         shortest_path_squared_sum[i] += dist_f * dist_f;
 
@@ -98,12 +107,12 @@ impl NetworkAnalyzer {
             // After summing distances, compute closeness for node i:
             // closenessCentrality[i] = (N - 1) / closenessCentrality[i]
             // and accumulate for global closeness centralization.
-            if closeness_centrality[i] > 0.0 {
-                closeness_centrality[i] = (params::N as f64 - 1.0) / closeness_centrality[i];
+            if centrality_closeness[i] > 0.0 {
+                centrality_closeness[i] = (params::N as f64 - 1.0) / centrality_closeness[i];
             }
-            self.global_closeness_centralization -= closeness_centrality[i];
-            if closeness_centrality[i] > closeness_centrality_max {
-                closeness_centrality_max = closeness_centrality[i];
+            self.centralization_closeness -= centrality_closeness[i];
+            if centrality_closeness[i] > centrality_closeness_max {
+                centrality_closeness_max = centrality_closeness[i];
             }
 
             // local clustering (Watts-Strogatz)
@@ -120,6 +129,11 @@ impl NetworkAnalyzer {
                 }
                 self.global_clustering_watts_strogatz +=
                     local_clustering_numerator as f64 / local_clustering_denominator as f64;
+                centrality_triadic[i] = local_clustering_numerator as f64;
+                self.centralization_triadic_participation -= centrality_triadic[i];
+                if centrality_triadic[i] > centrality_triadic_max {
+                    centrality_triadic_max = centrality_triadic[i];
+                }
             }
         }
 
@@ -133,8 +147,10 @@ impl NetworkAnalyzer {
         // Final normalization
         self.average_path_length /= params::N_DYAD as f64;
         self.network_efficiency /= params::N_DYAD as f64;
-        self.global_closeness_centralization += closeness_centrality_max * (params::N as f64);
-        self.global_closeness_centralization /= params::CLOSENESS_CENTRALIZATION_DENOMINATOR;
+        self.centralization_closeness += centrality_closeness_max * (params::N as f64);
+        self.centralization_closeness /= params::CLOSENESS_CENTRALIZATION_DENOMINATOR;
+        self.centralization_triadic_participation += centrality_triadic_max * (params::N as f64);
+        self.centralization_triadic_participation /= params::TRIADIC_CENTRALIZATION_DENOMINATOR;
         self.global_clustering_watts_strogatz /= params::N as f64;
         self.shortest_path_variance /= params::N as f64;
     
