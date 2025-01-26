@@ -13,6 +13,8 @@ pub struct NetworkAnalyzer {
     pub centralization_closeness: f64,
     pub centralization_triadic_participation: f64,
     pub shortest_path_variance: f64,
+    pub sigma: f64,
+    pub omega: f64,
 }
 
 impl NetworkAnalyzer {
@@ -42,6 +44,15 @@ impl NetworkAnalyzer {
     pub fn get_shortest_path_variance(&self) -> f64 {
         self.shortest_path_variance
     }
+    
+    pub fn get_omega(&self) -> f64 {
+        self.omega
+    }
+    
+    pub fn get_sigma(&self) -> f64 {
+        self.sigma
+    }
+
     /// Initializes empty fields.
     pub fn new() -> Self {
         NetworkAnalyzer {
@@ -53,6 +64,8 @@ impl NetworkAnalyzer {
             centralization_closeness: 0.0,
             centralization_triadic_participation: 0.0,
             shortest_path_variance: 0.0,
+            sigma: 0.0,
+            omega: 0.0,
         }
     }
 
@@ -153,6 +166,8 @@ impl NetworkAnalyzer {
         self.centralization_triadic_participation /= params::TRIADIC_CENTRALIZATION_DENOMINATOR;
         self.global_clustering_watts_strogatz /= params::N as f64;
         self.shortest_path_variance /= params::N as f64;
+        self.sigma = (self.global_clustering_watts_strogatz / params::CLUSTERING_COEFFICIENT_RANDOM) / (self.average_path_length / *params::AVERAGE_PATH_LENGTH_RANDOM);
+        self.omega = (self.average_path_length / *params::AVERAGE_PATH_LENGTH_RANDOM) - (params::CLUSTERING_COEFFICIENT_RANDOM / self.global_clustering_watts_strogatz);
     
         self.adj_list.clear();
     }

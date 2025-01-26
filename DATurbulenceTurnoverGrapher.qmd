@@ -296,6 +296,9 @@ set_fig_span <- 1:data$para_l_span
 
 set_fig_enforcement <- data$para_l_enfo
 
+set_fig_turbulence <- 1
+set_fig_turnover <- 1
+
 set_fig_t <- data$para_time
 
 x_label <- expression("Span of Control (S)")
@@ -432,10 +435,24 @@ param1_label <- "Average Distance Variance"
 param1_value_sc <- aperm(data$r_spva_avg)
 param1_value_nr <- aperm(data$r_spva_nr_avg)
 param1_value_rr <- aperm(data$r_spva_rr_avg)
-param2_label <- "Overall Centralization"
+param1_label <- "Clustering Coefficient"
+param1_value_sc <- aperm(data$r_clws_avg)
+param1_value_nr <- aperm(data$r_clws_nr_avg)
+param1_value_rr <- aperm(data$r_clws_rr_avg)
+param1_label <- "Small Worldness"
+param1_value_sc <- aperm(data$r_omeg_avg)
+param1_value_nr <- aperm(data$r_omeg_nr_avg)
+param1_value_rr <- aperm(data$r_omeg_rr_avg)
+
+
+param2_label <- "Closeness Centralization"
 param2_value_sc <- aperm(data$r_cent_avg)
 param2_value_nr <- aperm(data$r_cent_nr_avg)
 param2_value_rr <- aperm(data$r_cent_rr_avg)
+param2_label <- "Triadic Centralization"
+param2_value_sc <- aperm(data$r_tria_avg)
+param2_value_nr <- aperm(data$r_tria_nr_avg)
+param2_value_rr <- aperm(data$r_tria_rr_avg)
 
 param_label <- c(param1_label, param2_label)
 param_label <- factor(param_label, levels = param_label)
@@ -505,10 +522,10 @@ for (mech in set_fig_mech) {
     x_end = param1_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
     y_end = param2_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
   )
-  # df_fig <- rbind(df_fig, df_next)
+  df_fig <- rbind(df_fig, df_next)
 }
 
-df_fig[df_fig$mech == "(ii) Network Closure", ]$span_label <- ""
+# df_fig[df_fig$mech == "(ii) Network Closure", ]$span_label <- ""
 
 axes <- aes(
   x = x,
@@ -529,7 +546,7 @@ df_fig$outcome2 <- scales::rescale(df_fig$outcome2, to = range1)
 fig <- ggplot(data = df_fig, mapping = axes) +
   facet_wrap(. ~ panel, scales = "free") +
   geom_segment(arrow = arrow(length = unit(1, "mm"), type = "closed"), size = .3) +
-  geom_text(aes(hjust = span_label_hjust, vjust = span_label_vjust), color = 'black', size = 2, size.unit = "mm", show.legend = F) +
+  geom_text(aes(x = x_end, y = y_end, hjust = span_label_hjust, vjust = span_label_vjust), color = 'black', size = 2, size.unit = "mm", show.legend = F) +
   labs(x = param1_label, y = param2_label) +
   scale_color_manual(breaks = label_legend, values = c("#7e6148ff", "#e64b35ff", "#00a087ff")) +
   scale_shape_manual(breaks = label_legend, values = c(67, 78, 80)) +

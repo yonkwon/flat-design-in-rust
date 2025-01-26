@@ -395,6 +395,8 @@ impl Scenario {
         self.closeness_centralization = self.network_analyzer.get_closeness_centralization();
         self.triadic_centralization = self.network_analyzer.get_triadic_centralization();
         self.shortest_path_variance = self.network_analyzer.get_shortest_path_variance();
+        self.omega = self.network_analyzer.get_omega();
+        self.sigma = self.network_analyzer.get_sigma();
     }
 
     pub fn set_preference_score(&mut self) {
