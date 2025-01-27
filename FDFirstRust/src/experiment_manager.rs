@@ -3,7 +3,7 @@ use ndarray::{ArrayD, IxDyn};
 use std::sync::{Arc, Mutex};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use chrono::Local;
-use crate::params;
+use crate::params::{self, ITERATION, TIME};
 use crate::scenario::Scenario;
 
 /// Manages the experiment, including running the experiment and processing results.
@@ -214,7 +214,7 @@ impl ExperimentManager {
 
     pub fn run_experiments(&mut self) {
         // Iterate over each combination in parallel
-        let length_combination = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len();
+        let length_combination = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() * ITERATION * TIME;
         let pb_multi = MultiProgress::new();
         let pb_global = pb_multi.add(ProgressBar::new(length_combination as u64));
         pb_global.set_style(
@@ -393,6 +393,7 @@ impl ExperimentManager {
                         scenario_random_rewiring.do_turbulence();
                         scenario_no_rewiring.do_turbulence();
                     }
+                    pb_global.inc(1); // Increment the progress bar
                 }
                 pb_local.inc(1); // Increment the progress bar
             }
@@ -562,7 +563,6 @@ impl ExperimentManager {
                 self.r_omeg_13_std.lock().unwrap()[&ix_dyn] = local_omeg_13.std[t];
             }
             pb_local.finish_and_clear();
-            pb_global.inc(1); // Increment the progress bar
             },
         );
         pb_global.finish_with_message("Done!");
