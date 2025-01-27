@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 use std::thread::available_parallelism;
+use rayon::ThreadPoolBuilder;
 pub mod params;
 pub mod scenario;
 pub mod network_analyzer;
@@ -12,7 +13,7 @@ fn main() -> std::io::Result<()> {
     if num_thread > available_parallelism().unwrap().get() {
         num_thread = available_parallelism().unwrap().get()
     }
-    rayon::ThreadPoolBuilder::new().num_threads(num_thread).build_global().unwrap();
+    ThreadPoolBuilder::new().num_threads(num_thread).build_global().expect("Failed to build the global Rayon thread pool");
     println!("This simulation will run on {} threads", num_thread);
     
     params::initialize_once_cells();
