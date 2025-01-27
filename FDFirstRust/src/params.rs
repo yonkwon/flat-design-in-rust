@@ -12,7 +12,7 @@ pub static RUN_DESC: &str = "Standard";
 pub static GET_GRAPH: bool = false;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 10_000;
+pub static ITERATION: usize = 1000;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
@@ -25,8 +25,8 @@ pub static INFORMAL_REWIRING_PROP: f64 = 0.1;
 
 pub static N: usize = 100;
 // 30 * 4 = 24 * 5 = 20 * 6 = 15 * 8 = 12 * 10 = 10 * 12
-pub static M_OF_BUNDLE: usize = 20;
-pub static M_IN_BUNDLE: usize = 6;
+pub static M_OF_BUNDLE: usize = 15;
+pub static M_IN_BUNDLE: usize = 4;
 
 pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 pub static LENGTH_SPAN: usize = SPAN.len();

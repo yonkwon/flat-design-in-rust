@@ -1,7 +1,7 @@
 use rayon::prelude::*; 
 use ndarray::{ArrayD, IxDyn};
 use std::sync::{Arc, Mutex};
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use chrono::Local;
 use crate::params;
 use crate::scenario::Scenario;
@@ -214,11 +214,12 @@ impl ExperimentManager {
 
     pub fn run_experiments(&mut self) {
         // Iterate over each combination in parallel
-        let length_combination = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() * params::ITERATION * params::TIME;
-        let pb = ProgressBar::new(length_combination as u64);
-        pb.set_style(
+        let length_combination = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len();
+        let pb_multi = MultiProgress::new();
+        let pb_global = pb_multi.add(ProgressBar::new(length_combination as u64));
+        pb_global.set_style(
             ProgressStyle::default_bar()
-                .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({eta_precise})")
+                .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.green/red}] {pos}/{len} ({eta_precise})")
                 .expect("Failed to set progress bar template")
                 .progress_chars("#>-"),
         );
@@ -243,6 +244,7 @@ impl ExperimentManager {
                 *i_turbulence,
                 *i_turnover,
             ];
+
             let span = params::SPAN[*i_span];
             let enforcement = params::ENFORCEMENT[*i_enforcement];
             let turbulence_rate = params::TURBULENCE_RATE[*i_turbulence];
@@ -304,6 +306,10 @@ impl ExperimentManager {
             let mut local_spva_12 = OutcomeVariable::new();
             let mut local_spva_23 = OutcomeVariable::new();
             let mut local_spva_13 = OutcomeVariable::new();
+
+            let pb_local = pb_multi.add(ProgressBar::new(params::ITERATION as u64));
+            pb_local.set_style(ProgressStyle::with_template("{prefix:.bold.dim} [{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}").unwrap());
+            pb_local.set_prefix(format!("Thread {:?}", std::thread::current().id()));
 
             for _ in 0..params::ITERATION {
                 // Create a new Scenario with the given parameters
@@ -387,9 +393,8 @@ impl ExperimentManager {
                         scenario_random_rewiring.do_turbulence();
                         scenario_no_rewiring.do_turbulence();
                     }
-                    
-                    pb.inc(1); // Increment the progress bar
                 }
+                pb_local.inc(1); // Increment the progress bar
             }
             
             local_perf.finalize();
@@ -556,9 +561,11 @@ impl ExperimentManager {
                 self.r_omeg_13_avg.lock().unwrap()[&ix_dyn] = local_omeg_13.avg[t];
                 self.r_omeg_13_std.lock().unwrap()[&ix_dyn] = local_omeg_13.std[t];
             }
+            pb_local.finish_and_clear();
+            pb_global.inc(1); // Increment the progress bar
             },
         );
-        pb.finish_with_message("Done!");
+        pb_global.finish_with_message("Done!");
     }
 
     pub fn sample_network_csv(&self){
