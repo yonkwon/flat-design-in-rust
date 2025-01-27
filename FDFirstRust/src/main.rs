@@ -15,7 +15,7 @@ use rayon::ThreadPoolBuilder;
 
 fn main() -> std::io::Result<()> {    
     params::initialize_once_cells();
-    println!("Simulation through {:?}", params::PARAM_STRING);
+    println!("Simulation through {}", params::PARAM_STRING.clone());
 
     let mut num_thread = params::MAX_THREAD;
     if num_thread > available_parallelism().unwrap().get() {
@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
     println!("This simulation will run on {} threads", num_thread);
 
     let mut experiment_manager = ExperimentManager::new();
-    
+
     if params::GET_GRAPH {
         let folder_name = (*params::PARAM_STRING).clone();
         if !Path::new(&folder_name).exists() {
