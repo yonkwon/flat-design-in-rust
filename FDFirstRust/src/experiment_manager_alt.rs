@@ -215,7 +215,7 @@ impl ExperimentManager {
     pub fn run_experiments(&mut self) {
         // Iterate over each combination in parallel
         let pb_multi = MultiProgress::new();
-        let pb_global = pb_multi.add(ProgressBar::new(ITERATION as u64));
+        let pb_global = pb_multi.add(ProgressBar::new(params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() as u64 * ITERATION as u64));
         pb_global.set_style(
             ProgressStyle::default_bar()
                 .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.green/red}] {pos}/{len} ({eta_precise})")
@@ -388,6 +388,7 @@ impl ExperimentManager {
                         }
                     }
                     pb_local.inc(1);
+                    pb_global.inc(1);
             });
 
             params::PARAMS_INDEX_COMBINATIONS.get().unwrap().iter().for_each(
@@ -512,9 +513,7 @@ impl ExperimentManager {
                         }
                     }
             );
-            
             pb_local.finish_and_clear();
-            pb_global.inc(1);
         });
         params::PARAMS_INDEX_COMBINATIONS.get().unwrap().iter().for_each(
             |(
