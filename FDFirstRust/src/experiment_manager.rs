@@ -214,7 +214,7 @@ impl ExperimentManager {
 
     pub fn run_experiments(&mut self) {
         // Iterate over each combination in parallel
-        let length_combination = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() * params::ITERATION;
+        let length_combination = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() * params::ITERATION * params::TIME;
         let pb = ProgressBar::new(length_combination as u64);
         pb.set_style(
             ProgressStyle::default_bar()
@@ -379,6 +379,7 @@ impl ExperimentManager {
                     local_omeg_23.accumulate(t, scenario_random_rewiring.omega - scenario_no_rewiring.omega);
                     local_omeg_13.accumulate(t, scenario.omega - scenario_no_rewiring.omega);
 
+
                     scenario.step_forward();
                     scenario_random_rewiring.step_forward();
                     scenario_no_rewiring.step_forward();
@@ -387,9 +388,9 @@ impl ExperimentManager {
                         scenario_random_rewiring.do_turbulence();
                         scenario_no_rewiring.do_turbulence();
                     }
+                    
+                    pb.inc(1); // Increment the progress bar
                 }
-                
-                pb.inc(1); // Increment the progress bar
             }
             
             local_perf.finalize();
