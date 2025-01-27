@@ -8,9 +8,12 @@ pub mod experiment_manager;
 pub mod hdf5_manager;
 
 fn main() -> std::io::Result<()> {
-    if params::MAX_THREAD < available_parallelism().unwrap().get() {
-        rayon::ThreadPoolBuilder::new().num_threads(params::MAX_THREAD).build_global().unwrap();
+    let mut num_thread = params::MAX_THREAD;
+    if num_thread > available_parallelism().unwrap().get() {
+        num_thread = available_parallelism().unwrap().get()
     }
+    rayon::ThreadPoolBuilder::new().num_threads(num_thread).build_global().unwrap();
+    println!("This simulation will run on {} threads", num_thread);
     
     params::initialize_once_cells();
     let mut experiment_manager = experiment_manager::ExperimentManager::new();

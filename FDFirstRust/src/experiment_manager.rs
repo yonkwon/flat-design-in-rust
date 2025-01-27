@@ -379,7 +379,6 @@ impl ExperimentManager {
                     local_omeg_23.accumulate(t, scenario_random_rewiring.omega - scenario_no_rewiring.omega);
                     local_omeg_13.accumulate(t, scenario.omega - scenario_no_rewiring.omega);
 
-
                     scenario.step_forward();
                     scenario_random_rewiring.step_forward();
                     scenario_no_rewiring.step_forward();
