@@ -26,10 +26,7 @@ library(ggsci)
 library(ggh4x) # facet nested
 library(ggpp) # geom_label enhanced
 library(geomtextpath) # text + arrow
-```
 
-## Data Import & User Config
-```{r import}
 data <- H5Fopen(file)
 fig_id <- paste0(
   basename(file)
@@ -38,40 +35,6 @@ fig_id <- paste0(
 fig_dpi <- 600
 label_size <- 10
 tick_label_size <- 8
-
-label_mech <- c(
-  "No Social Dynamics (Baseline)",
-  "Counterfactual (Random)",
-  "Network Closure",
-  "Preferential Attachment"
-)
-label_mech <- factor(
-  label_mech,
-  levels = label_mech
-)
-
-label_mech_abc <- paste0("(", LETTERS[1:length(label_mech)], ") ", label_mech)
-label_mech_abc <- factor(label_mech_abc, levels = label_mech_abc)
-
-label_scenario <- c(
-  "No Social Dynamics (Baseline)",
-  "Social Dynamics",
-  "Counterfactual (Random)"
-)
-label_scenario <- factor(
-  label_scenario,
-  levels = label_scenario
-)
-
-label_scenario_iii <- c(
-  "No Social Dynamics (Baseline)",
-  "Social Dynamics",
-  "Counterfactual (Random)"
-)
-label_scenario_iii <- factor(
-  label_scenario_iii,
-  levels = label_scenario_iii
-)
 ```
 
 # Line Plots
@@ -97,6 +60,7 @@ set_fig_turnover <- 1
 
 set_fig_t_short <- 25
 set_fig_t_long <- 100
+set_fig_t_long <- data$para_time
 
 x_label <- expression("Span of Control (S)")
 x_tick_label <- data$para_v_span
@@ -301,6 +265,7 @@ set_fig_turbulence <- 1
 set_fig_turnover <- 1
 
 set_fig_t <- data$para_time
+# set_fig_t <- 200
 
 x_label <- expression("Span of Control (S)")
 x_tick_label <- data$para_v_span
@@ -314,7 +279,6 @@ y_value_rr <- aperm(data$r_perf_rr_avg - data$r_perf_nr_avg)
 # y_label <- "Organizational Performance"
 # y_value_sc <- aperm(data$r_perf_avg)
 # y_value_rr <- aperm(data$r_perf_rr_avg)
-
 
 label_mech_abc <- c(
   "(A) Network Closure",
@@ -434,42 +398,50 @@ x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_la
 # 
 # param1_label <- "Average Distance Variance"
 # param1_value_sc <- aperm(data$r_spva_avg)
-# param1_value_nr <- aperm(data$r_spva_nr_avg)
 # param1_value_rr <- aperm(data$r_spva_rr_avg)
+# param1_value_nr <- aperm(data$r_spva_nr_avg)
 # param1_label <- "Clustering Coefficient"
 # param1_value_sc <- aperm(data$r_clws_avg)
-# param1_value_nr <- aperm(data$r_clws_nr_avg)
 # param1_value_rr <- aperm(data$r_clws_rr_avg)
+# param1_value_nr <- aperm(data$r_clws_nr_avg)
 # param1_label <- "Small Worldness"
 # param1_value_sc <- aperm(data$r_omeg_avg)
-# param1_value_nr <- aperm(data$r_omeg_nr_avg)
 # param1_value_rr <- aperm(data$r_omeg_rr_avg)
-param1_label <- "Triadic Centralization"
-param1_value_sc <- aperm(data$r_tria_avg)
-param1_value_nr <- aperm(data$r_tria_nr_avg)
-param1_value_rr <- aperm(data$r_tria_rr_avg)
+# param1_value_nr <- aperm(data$r_omeg_nr_avg)
+# param1_label <- "Triadic Centralization"
+# param1_value_sc <- aperm(data$r_tria_avg)
+# param1_value_rr <- aperm(data$r_tria_rr_avg)
+# param1_value_nr <- aperm(data$r_tria_nr_avg)
 # param1_label <- "Small World Q"
 # param1_value_sc <- aperm(data$r_sigm_avg)
-# param1_value_nr <- aperm(data$r_sigm_nr_avg)
 # param1_value_rr <- aperm(data$r_sigm_rr_avg)
+# param1_value_nr <- aperm(data$r_sigm_nr_avg)
+param1_label <- "Network Efficiency"
+param1_value_sc <- aperm(data$r_effi_avg)
+param1_value_rr <- aperm(data$r_effi_rr_avg)
+param1_value_nr <- aperm(data$r_effi_nr_avg)
 
 
 # param2_label <- "Closeness Centralization"
 # param2_value_sc <- aperm(data$r_cent_avg)
-# param2_value_nr <- aperm(data$r_cent_nr_avg)
 # param2_value_rr <- aperm(data$r_cent_rr_avg)
-# param2_label <- "Triadic Centralization"
-# param2_value_sc <- aperm(data$r_tria_avg)
-# param2_value_nr <- aperm(data$r_tria_nr_avg)
-# param2_value_rr <- aperm(data$r_tria_rr_avg)
+# param2_value_nr <- aperm(data$r_cent_nr_avg)
+param2_label <- "Triadic Centralization"
+param2_value_sc <- aperm(data$r_tria_avg)
+param2_value_rr <- aperm(data$r_tria_rr_avg)
+param2_value_nr <- aperm(data$r_tria_nr_avg)
 # param2_label <- "Average Distance Variance"
 # param2_value_sc <- aperm(data$r_spva_avg)
-# param2_value_nr <- aperm(data$r_spva_nr_avg)
 # param2_value_rr <- aperm(data$r_spva_rr_avg)
-param2_label <- "Small World Q"
-param2_value_sc <- aperm(data$r_sigm_avg)
-param2_value_nr <- aperm(data$r_sigm_nr_avg)
-param2_value_rr <- aperm(data$r_sigm_rr_avg)
+# param2_value_nr <- aperm(data$r_spva_nr_avg)
+# param2_label <- "Small World Q"
+# param2_value_sc <- aperm(data$r_sigm_avg)
+# param2_value_rr <- aperm(data$r_sigm_rr_avg)
+# param2_value_nr <- aperm(data$r_sigm_nr_avg)
+# param2_label <- "Clustering Coefficient"
+# param2_value_sc <- aperm(data$r_clws_avg)
+# param2_value_rr <- aperm(data$r_clws_rr_avg)
+# param2_value_nr <- aperm(data$r_clws_nr_avg)
 
 param_label <- c(param1_label, param2_label)
 param_label <- factor(param_label, levels = param_label)
@@ -494,15 +466,28 @@ label_legend <- factor(
   levels = label_legend
 )
 
+# label_span <- paste0(
+#   "S=", data$para_v_span
+# )
+# label_span <- paste0(
+#   "(", data$para_v_span, ")"
+# )
+label_span <- paste0(
+  data$para_v_span, ""
+)
+
 df_fig <- data.frame()
 
+# Common Effect
 df_next <- data.frame(
   panel = label_panel[1],
   mech = label_legend[1],
   span = data$para_v_span[set_fig_span],
-  span_label = paste0("(", data$para_v_span[set_fig_span], ")"),
+  span_label = label_span[set_fig_span],
   span_label_hjust = .4,
-  span_label_vjust = 0,
+  span_label_vjust = -.1,
+  hjust = 0,
+  vjust = 0,
   x = param1_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
   y = param2_value_nr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
   x_end = param1_value_rr[1, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
@@ -515,9 +500,11 @@ for (mech in set_fig_mech) {
     panel = label_panel[2],
     mech = label_legend[mech + 1],
     span = data$para_v_span[set_fig_span],
-    span_label = paste0("(", data$para_v_span[set_fig_span], ")"),
+    span_label = label_span[set_fig_span],
     span_label_hjust = 1,
     span_label_vjust = 1,
+    hjust = 1,
+    vjust = 0,
     x = param1_value_rr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
     y = param2_value_rr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
     x_end = param1_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
@@ -531,16 +518,28 @@ for (mech in set_fig_mech) {
     panel = label_panel[3],
     mech = label_legend[mech + 1],
     span = data$para_v_span[set_fig_span],
-    span_label = paste0("(", data$para_v_span[set_fig_span], ")"),
+    span_label = label_span[set_fig_span],
     span_label_hjust = .4,
     span_label_vjust = 0,
+    hjust = 1,
+    vjust = 0,
     x = param1_value_nr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
     y = param2_value_nr[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
     x_end = param1_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t],
     y_end = param2_value_sc[mech, set_fig_span, set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
   )
-  df_fig <- rbind(df_fig, df_next)
+  # df_fig <- rbind(df_fig, df_next)Triadic Participation Centralization:
 }
+
+
+df_fig[df_fig$mech == "(i) Both", ]$hjust = 1
+df_fig[df_fig$mech == "(i) Both", ]$vjust = 1
+
+df_fig[df_fig$mech == "(ii) Network Closure", ]$hjust = 1
+df_fig[df_fig$mech == "(ii) Network Closure", ]$vjust = 1
+
+df_fig[df_fig$mech == "(iii) Preferential Attachment", ]$hjust = 1
+df_fig[df_fig$mech == "(iii) Preferential Attachment", ]$vjust = 1
 
 # df_fig[df_fig$mech == "(ii) Network Closure", ]$span_label <- ""
 
@@ -551,7 +550,9 @@ axes <- aes(
   yend = y_end,
   color = mech,
   linetype = mech,
-  label = span_label
+  label = span_label,
+  hjust = hjust,
+  vjust = vjust
   # label = span
 )
 
@@ -562,8 +563,11 @@ df_fig$outcome2 <- scales::rescale(df_fig$outcome2, to = range1)
 
 fig <- ggplot(data = df_fig, mapping = axes) +
   facet_wrap(. ~ panel, scales = "free") +
-  geom_segment(arrow = arrow(length = unit(1, "mm"), type = "closed"), size = .3) +
-  geom_text(aes(x = x_end, y = y_end, hjust = span_label_hjust, vjust = span_label_vjust), color = 'black', size = 2, size.unit = "mm", show.legend = F) +
+  geom_segment() +
+  geom_segment(arrow = arrow(length = unit(2, "mm"), type = "closed"), size = 0, linetype = 'blank') +
+  geom_textsegment(size = 2.5, show.legend = F, linetype = 'blank', color = 'black') +
+  # geom_textsegment(size = 2, alpha = .85, show.legend = F, text_only = TRUE, linetype = 'blank') +
+  # geom_text(aes(x = x_end, y = y_end, hjust = span_label_hjust, vjust = span_label_vjust), color = 'black', size = 2, size.unit = "mm", show.legend = F) +
   labs(x = param1_label, y = param2_label) +
   scale_color_manual(breaks = label_legend, values = c("#7e6148ff", "#e64b35ff", "#00a087ff")) +
   scale_shape_manual(breaks = label_legend, values = c(67, 78, 80)) +
@@ -766,7 +770,6 @@ files2print(choose.files())
 ```
 
 ## Network Metric
-
 ```{r}
 num_edges <- data$para_informal_init_n + data$para_n - 1
 p <- num_edges / (data$para_n * (data$para_n - 1) / 2)
@@ -1019,15 +1022,31 @@ label_span <- c(
 label_span <- factor(label_span, levels = label_span)
 
 label_combined <- c(
-  paste0("(i) ", label_scenario[1], "; ", label_span[1]),
-  paste0("(ii) ", label_scenario[1], "; ", label_span[2]),
-  paste0("(iii) ", label_scenario[2], "; ", label_span[1]),
-  paste0("(iv) ", label_scenario[2], "; ", label_span[2])
+  paste0("(i) ", "sc1", "; ", label_span[1]),
+  paste0("(ii) ", "sc1", "; ", label_span[2]),
+  paste0("(iii) ", "sc2", "; ", label_span[1]),
+  paste0("(iv) ", "sc2", "; ", label_span[2])
 )
 label_combined <- factor(label_combined, levels = label_combined)
 
-label_mech_abc <- paste0("(", LETTERS[1:2], ") ", label_mech[3:4])
-label_mech_abc <- factor(label_mech_abc, levels = label_mech_abc)
+label_mech_abc <- c(
+  "(A) Network Closure",
+  "(B) Preferential Attachment"
+)
+label_mech_abc <- factor(
+  label_mech_abc,
+  levels = label_mech_abc
+)
+
+label_scenario <- c(
+  "No Social Dynamics (Baseline)",
+  "Social Dynamics",
+  "Counterfactual (Random)"
+)
+label_scenario <- factor(
+  label_scenario,
+  levels = label_scenario
+)
 
 df_fig <- data.frame()
 for (mech in 1:data$para_l_mech) {
@@ -1038,7 +1057,7 @@ for (mech in 1:data$para_l_mech) {
       span = label_span[s],
       scenario = label_scenario[3],
       time = set_fig_t,
-      outcome = y_value_nr[mech, set_fig_span[s], set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
+      outcome = y_value_rr[mech, set_fig_span[s], set_fig_enforcement, set_fig_turbulence, set_fig_turnover, set_fig_t]
     )
     df_fig <- rbind(df_fig, df_next)
 
