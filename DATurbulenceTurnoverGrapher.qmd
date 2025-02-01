@@ -60,7 +60,7 @@ set_fig_turnover <- 1
 
 set_fig_t_short <- 25
 set_fig_t_long <- 100
-set_fig_t_long <- data$para_time
+# set_fig_t_long <- data$para_time
 
 x_label <- expression("Span of Control (S)")
 x_tick_label <- data$para_v_span
@@ -372,15 +372,15 @@ df_fig[36, ]$outcome - df_fig[42, ]$outcome
 ## Figure 6. Structural Features of Emerging Interaction Patterns
 ```{r fig}
 set_fig_width <- 6.5
-set_fig_height <- 3
+set_fig_height <- 3.5
 set_fig_ylim <- c(-.1, .9)
 label_size <- 10
 tick_label_size <- 8
 
-set_fig_h <- 1
-
 set_fig_mech <- 1:data$para_l_mech
+
 set_fig_span <- 1:data$para_l_span
+set_fig_span <- c(1, 3, 5, 7)
 
 set_fig_enforcement <- data$para_l_enfo
 
@@ -400,10 +400,10 @@ x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_la
 # param1_value_sc <- aperm(data$r_spva_avg)
 # param1_value_rr <- aperm(data$r_spva_rr_avg)
 # param1_value_nr <- aperm(data$r_spva_nr_avg)
-# param1_label <- "Clustering Coefficient"
-# param1_value_sc <- aperm(data$r_clws_avg)
-# param1_value_rr <- aperm(data$r_clws_rr_avg)
-# param1_value_nr <- aperm(data$r_clws_nr_avg)
+param1_label <- "Clustering Coefficient"
+param1_value_sc <- aperm(data$r_clws_avg)
+param1_value_rr <- aperm(data$r_clws_rr_avg)
+param1_value_nr <- aperm(data$r_clws_nr_avg)
 # param1_label <- "Small Worldness"
 # param1_value_sc <- aperm(data$r_omeg_avg)
 # param1_value_rr <- aperm(data$r_omeg_rr_avg)
@@ -416,10 +416,10 @@ x_tick_label[which.max(x_tick_label)] <- paste0(x_tick_label[which.max(x_tick_la
 # param1_value_sc <- aperm(data$r_sigm_avg)
 # param1_value_rr <- aperm(data$r_sigm_rr_avg)
 # param1_value_nr <- aperm(data$r_sigm_nr_avg)
-param1_label <- "Network Efficiency"
-param1_value_sc <- aperm(data$r_effi_avg)
-param1_value_rr <- aperm(data$r_effi_rr_avg)
-param1_value_nr <- aperm(data$r_effi_nr_avg)
+# param1_label <- "Network Efficiency"
+# param1_value_sc <- aperm(data$r_effi_avg)
+# param1_value_rr <- aperm(data$r_effi_rr_avg)
+# param1_value_nr <- aperm(data$r_effi_nr_avg)
 
 
 # param2_label <- "Closeness Centralization"
@@ -533,13 +533,13 @@ for (mech in set_fig_mech) {
 
 
 df_fig[df_fig$mech == "(i) Both", ]$hjust = 1
-df_fig[df_fig$mech == "(i) Both", ]$vjust = 1
+df_fig[df_fig$mech == "(i) Both", ]$vjust = 0
 
 df_fig[df_fig$mech == "(ii) Network Closure", ]$hjust = 1
 df_fig[df_fig$mech == "(ii) Network Closure", ]$vjust = 1
 
 df_fig[df_fig$mech == "(iii) Preferential Attachment", ]$hjust = 1
-df_fig[df_fig$mech == "(iii) Preferential Attachment", ]$vjust = 1
+df_fig[df_fig$mech == "(iii) Preferential Attachment", ]$vjust = 0
 
 # df_fig[df_fig$mech == "(ii) Network Closure", ]$span_label <- ""
 
@@ -565,7 +565,7 @@ fig <- ggplot(data = df_fig, mapping = axes) +
   facet_wrap(. ~ panel, scales = "free") +
   geom_segment() +
   geom_segment(arrow = arrow(length = unit(2, "mm"), type = "closed"), size = 0, linetype = 'blank') +
-  geom_textsegment(size = 2.5, show.legend = F, linetype = 'blank', color = 'black') +
+  geom_textsegment(size = 3, show.legend = F, linetype = 'blank', color = 'black') +
   # geom_textsegment(size = 2, alpha = .85, show.legend = F, text_only = TRUE, linetype = 'blank') +
   # geom_text(aes(x = x_end, y = y_end, hjust = span_label_hjust, vjust = span_label_vjust), color = 'black', size = 2, size.unit = "mm", show.legend = F) +
   labs(x = param1_label, y = param2_label) +
