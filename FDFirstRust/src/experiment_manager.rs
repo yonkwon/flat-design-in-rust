@@ -1,9 +1,9 @@
 use rayon::prelude::*; 
-use ndarray::{ArrayD, IxDyn};
+use ndarray::{ArrayD, Dim, IxDyn, IxDynImpl};
 use std::sync::{Arc, Mutex};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use chrono::Local;
-use crate::params::{self, ITERATION, TIME};
+use crate::params::{self, ITERATION};
 use crate::scenario::Scenario;
 
 /// Manages the experiment, including running the experiment and processing results.
@@ -214,42 +214,19 @@ impl ExperimentManager {
 
     pub fn run_experiments(&mut self) {
         // Iterate over each combination in parallel
-        let length_combination = params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() * ITERATION * TIME;
         let pb_multi = MultiProgress::new();
-        let pb_global = pb_multi.add(ProgressBar::new(length_combination as u64));
+        let pb_global = pb_multi.add(ProgressBar::new(params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() as u64 * ITERATION as u64));
         pb_global.set_style(
             ProgressStyle::default_bar()
                 .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.green/red}] {pos}/{len} ({eta_precise})")
                 .expect("Failed to set progress bar template")
                 .progress_chars("#>-"),
         );
-        println!(
-            "{}\tInitiated: Running Experiments - Target file: {}",
-            Local::now().format("%Y-%m-%d %H:%M:%S"),
-            (params::PARAM_STRING).clone(),
-        );
 
-        //TODO: Create value list within each combination, then save it to ndarray after iteration. This way reduces the number of locks.
-        params::PARAMS_INDEX_COMBINATIONS.get().unwrap().into_par_iter().for_each(
-            |(
-            i_social_dynamics, 
-            i_span, 
-            i_enforcement, 
-            i_turbulence, 
-            i_turnover)| {
-            let indices = vec![
-                *i_social_dynamics,
-                *i_span,
-                *i_enforcement,
-                *i_turbulence,
-                *i_turnover,
-            ];
-
-            let span = params::SPAN[*i_span];
-            let enforcement = params::ENFORCEMENT[*i_enforcement];
-            let turbulence_rate = params::TURBULENCE_RATE[*i_turbulence];
-            let turnover_rate = params::TURNOVER_RATE[*i_turnover];
-            let turbulence_interval = params::TURBULENCE_INTERVAL[*i_turbulence];
+        (0..params::ITERATION).into_par_iter().for_each(|_iter_idx: usize| {
+            let pb_local = pb_multi.add(ProgressBar::new(params::PARAMS_INDEX_COMBINATIONS.get().unwrap().len() as u64));
+            pb_local.set_style(ProgressStyle::with_template("{prefix:.bold.dim} [{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}").unwrap());
+            pb_local.set_prefix(format!("Thread {:?}", std::thread::current().id()));
 
             let mut local_perf = OutcomeVariable::new();
             let mut local_perf_rr = OutcomeVariable::new();
@@ -307,264 +284,361 @@ impl ExperimentManager {
             let mut local_spva_23 = OutcomeVariable::new();
             let mut local_spva_13 = OutcomeVariable::new();
 
-            let pb_local = pb_multi.add(ProgressBar::new(params::ITERATION as u64));
-            pb_local.set_style(ProgressStyle::with_template("{prefix:.bold.dim} [{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}").unwrap());
-            pb_local.set_prefix(format!("Thread {:?}", std::thread::current().id()));
+            params::PARAMS_INDEX_COMBINATIONS.get().unwrap().iter().for_each(
+                |(
+                i_social_dynamics, 
+                i_span, 
+                i_enforcement, 
+                i_turbulence, 
+                i_turnover)| {
+                    let indices = vec![
+                        *i_social_dynamics,
+                        *i_span,
+                        *i_enforcement,
+                        *i_turbulence,
+                        *i_turnover,
+                    ];
+                    let span = params::SPAN[*i_span];
+                    let enforcement = params::ENFORCEMENT[*i_enforcement];
+                    let turbulence_rate = params::TURBULENCE_RATE[*i_turbulence];
+                    let turnover_rate = params::TURNOVER_RATE[*i_turnover];
+                    let turbulence_interval = params::TURBULENCE_INTERVAL[*i_turbulence];
+                    let mut scenario = Scenario::new(
+                        *i_social_dynamics,
+                        span,
+                        enforcement,
+                        turbulence_rate,
+                        turnover_rate,
+                    );
+                    let mut scenario_random_rewiring = scenario.get_clone();
+                    scenario_random_rewiring.set_network_params(true, true);
+                    let mut scenario_no_rewiring = scenario.get_clone();
+                    scenario_no_rewiring.set_network_params(false, false);
+                    scenario.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Systematically formed
+                    scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
 
-            for _ in 0..params::ITERATION {
-                // Create a new Scenario with the given parameters
-                let mut scenario = Scenario::new(
-                    *i_social_dynamics,
-                    span,
-                    enforcement,
-                    turbulence_rate,
-                    turnover_rate,
-                );
-                
-                let mut scenario_random_rewiring = scenario.get_clone();
-                scenario_random_rewiring.set_network_params(true, true);
-                let mut scenario_no_rewiring = scenario.get_clone();
-                scenario_no_rewiring.set_network_params(false, false);
-                scenario.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Systematically formed
-                scenario_random_rewiring.do_rewiring(params::INFORMAL_INITIAL_NUM, 0); // Randomly formed
+                    for t in 0..params::TIME {
+                        let mut indices_t = indices.clone();
+                        indices_t.push(t);
+                        let ix_dyn = IxDyn(&indices_t);
+                        
+                        local_perf.set(&ix_dyn, scenario.performance_avg);
+                        local_perf_rr.set(&ix_dyn, scenario_random_rewiring.performance_avg);
+                        local_perf_nr.set(&ix_dyn, scenario_no_rewiring.performance_avg);
+                        local_perf_12.set(&ix_dyn, scenario.performance_avg - scenario_random_rewiring.performance_avg);
+                        local_perf_23.set(&ix_dyn, scenario_random_rewiring.performance_avg - scenario_no_rewiring.performance_avg);
+                        local_perf_13.set(&ix_dyn, scenario.performance_avg - scenario_no_rewiring.performance_avg);
 
-                for t in 0..params::TIME {
-                    local_perf.accumulate(t, scenario.performance_avg);
-                    local_perf_rr.accumulate(t, scenario_random_rewiring.performance_avg);
-                    local_perf_nr.accumulate(t, scenario_no_rewiring.performance_avg);
-                    local_perf_12.accumulate(t, scenario.performance_avg - scenario_random_rewiring.performance_avg);
-                    local_perf_23.accumulate(t, scenario_random_rewiring.performance_avg - scenario_no_rewiring.performance_avg);
-                    local_perf_13.accumulate(t, scenario.performance_avg - scenario_no_rewiring.performance_avg);
+                        local_clws.set(&ix_dyn, scenario.global_clustering_watts_strogatz);
+                        local_clws_rr.set(&ix_dyn, scenario_random_rewiring.global_clustering_watts_strogatz);
+                        local_clws_nr.set(&ix_dyn, scenario_no_rewiring.global_clustering_watts_strogatz);
+                        local_clws_12.set(&ix_dyn, scenario.global_clustering_watts_strogatz - scenario_random_rewiring.global_clustering_watts_strogatz);
+                        local_clws_23.set(&ix_dyn, scenario_random_rewiring.global_clustering_watts_strogatz - scenario_no_rewiring.global_clustering_watts_strogatz);
+                        local_clws_13.set(&ix_dyn, scenario.global_clustering_watts_strogatz - scenario_no_rewiring.global_clustering_watts_strogatz);
 
-                    local_clws.accumulate(t, scenario.global_clustering_watts_strogatz);
-                    local_clws_rr.accumulate(t, scenario_random_rewiring.global_clustering_watts_strogatz);
-                    local_clws_nr.accumulate(t, scenario_no_rewiring.global_clustering_watts_strogatz);
-                    local_clws_12.accumulate(t, scenario.global_clustering_watts_strogatz - scenario_random_rewiring.global_clustering_watts_strogatz);
-                    local_clws_23.accumulate(t, scenario_random_rewiring.global_clustering_watts_strogatz - scenario_no_rewiring.global_clustering_watts_strogatz);
-                    local_clws_13.accumulate(t, scenario.global_clustering_watts_strogatz - scenario_no_rewiring.global_clustering_watts_strogatz);
+                        local_cent.set(&ix_dyn, scenario.closeness_centralization);
+                        local_cent_rr.set(&ix_dyn, scenario_random_rewiring.closeness_centralization);
+                        local_cent_nr.set(&ix_dyn, scenario_no_rewiring.closeness_centralization);
+                        local_cent_12.set(&ix_dyn, scenario.closeness_centralization - scenario_random_rewiring.closeness_centralization);
+                        local_cent_23.set(&ix_dyn, scenario_random_rewiring.closeness_centralization - scenario_no_rewiring.closeness_centralization);
+                        local_cent_13.set(&ix_dyn, scenario.closeness_centralization - scenario_no_rewiring.closeness_centralization);
 
-                    local_cent.accumulate(t, scenario.closeness_centralization);
-                    local_cent_rr.accumulate(t, scenario_random_rewiring.closeness_centralization);
-                    local_cent_nr.accumulate(t, scenario_no_rewiring.closeness_centralization);
-                    local_cent_12.accumulate(t, scenario.closeness_centralization - scenario_random_rewiring.closeness_centralization);
-                    local_cent_23.accumulate(t, scenario_random_rewiring.closeness_centralization - scenario_no_rewiring.closeness_centralization);
-                    local_cent_13.accumulate(t, scenario.closeness_centralization - scenario_no_rewiring.closeness_centralization);
+                        local_tria.set(&ix_dyn, scenario.triadic_centralization);
+                        local_tria_rr.set(&ix_dyn, scenario_random_rewiring.triadic_centralization);
+                        local_tria_nr.set(&ix_dyn, scenario_no_rewiring.triadic_centralization);
+                        local_tria_12.set(&ix_dyn, scenario.triadic_centralization - scenario_random_rewiring.triadic_centralization);
+                        local_tria_23.set(&ix_dyn, scenario_random_rewiring.triadic_centralization - scenario_no_rewiring.triadic_centralization);
+                        local_tria_13.set(&ix_dyn, scenario.triadic_centralization - scenario_no_rewiring.triadic_centralization);
 
-                    local_tria.accumulate(t, scenario.triadic_centralization);
-                    local_tria_rr.accumulate(t, scenario_random_rewiring.triadic_centralization);
-                    local_tria_nr.accumulate(t, scenario_no_rewiring.triadic_centralization);
-                    local_tria_12.accumulate(t, scenario.triadic_centralization - scenario_random_rewiring.triadic_centralization);
-                    local_tria_23.accumulate(t, scenario_random_rewiring.triadic_centralization - scenario_no_rewiring.triadic_centralization);
-                    local_tria_13.accumulate(t, scenario.triadic_centralization - scenario_no_rewiring.triadic_centralization);
+                        local_spva.set(&ix_dyn, scenario.shortest_path_variance);
+                        local_spva_rr.set(&ix_dyn, scenario_random_rewiring.shortest_path_variance);
+                        local_spva_nr.set(&ix_dyn, scenario_no_rewiring.shortest_path_variance);
+                        local_spva_12.set(&ix_dyn, scenario.shortest_path_variance - scenario_random_rewiring.shortest_path_variance);
+                        local_spva_23.set(&ix_dyn, scenario_random_rewiring.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
+                        local_spva_13.set(&ix_dyn, scenario.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
+                        
+                        local_effi.set(&ix_dyn, scenario.network_efficiency);
+                        local_effi_rr.set(&ix_dyn, scenario_random_rewiring.network_efficiency);
+                        local_effi_nr.set(&ix_dyn, scenario_no_rewiring.network_efficiency);
+                        local_effi_12.set(&ix_dyn, scenario.network_efficiency - scenario_random_rewiring.network_efficiency);
+                        local_effi_23.set(&ix_dyn, scenario_random_rewiring.network_efficiency - scenario_no_rewiring.network_efficiency);
+                        local_effi_13.set(&ix_dyn, scenario.network_efficiency - scenario_no_rewiring.network_efficiency);
 
-                    local_spva.accumulate(t, scenario.shortest_path_variance);
-                    local_spva_rr.accumulate(t, scenario_random_rewiring.shortest_path_variance);
-                    local_spva_nr.accumulate(t, scenario_no_rewiring.shortest_path_variance);
-                    local_spva_12.accumulate(t, scenario.shortest_path_variance - scenario_random_rewiring.shortest_path_variance);
-                    local_spva_23.accumulate(t, scenario_random_rewiring.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
-                    local_spva_13.accumulate(t, scenario.shortest_path_variance - scenario_no_rewiring.shortest_path_variance);
-                    
-                    local_effi.accumulate(t, scenario.network_efficiency);
-                    local_effi_rr.accumulate(t, scenario_random_rewiring.network_efficiency);
-                    local_effi_nr.accumulate(t, scenario_no_rewiring.network_efficiency);
-                    local_effi_12.accumulate(t, scenario.network_efficiency - scenario_random_rewiring.network_efficiency);
-                    local_effi_23.accumulate(t, scenario_random_rewiring.network_efficiency - scenario_no_rewiring.network_efficiency);
-                    local_effi_13.accumulate(t, scenario.network_efficiency - scenario_no_rewiring.network_efficiency);
+                        local_sigm.set(&ix_dyn, scenario.omega);
+                        local_sigm_rr.set(&ix_dyn, scenario_random_rewiring.omega);
+                        local_sigm_nr.set(&ix_dyn, scenario_no_rewiring.omega);
+                        local_sigm_12.set(&ix_dyn, scenario.omega - scenario_random_rewiring.omega);
+                        local_sigm_23.set(&ix_dyn, scenario_random_rewiring.omega - scenario_no_rewiring.omega);
+                        local_sigm_13.set(&ix_dyn, scenario.omega - scenario_no_rewiring.omega);
+                        
+                        local_omeg.set(&ix_dyn, scenario.omega);
+                        local_omeg_rr.set(&ix_dyn, scenario_random_rewiring.omega);
+                        local_omeg_nr.set(&ix_dyn, scenario_no_rewiring.omega);
+                        local_omeg_12.set(&ix_dyn, scenario.omega - scenario_random_rewiring.omega);
+                        local_omeg_23.set(&ix_dyn, scenario_random_rewiring.omega - scenario_no_rewiring.omega);
+                        local_omeg_13.set(&ix_dyn, scenario.omega - scenario_no_rewiring.omega);
 
-                    local_sigm.accumulate(t, scenario.omega);
-                    local_sigm_rr.accumulate(t, scenario_random_rewiring.omega);
-                    local_sigm_nr.accumulate(t, scenario_no_rewiring.omega);
-                    local_sigm_12.accumulate(t, scenario.omega - scenario_random_rewiring.omega);
-                    local_sigm_23.accumulate(t, scenario_random_rewiring.omega - scenario_no_rewiring.omega);
-                    local_sigm_13.accumulate(t, scenario.omega - scenario_no_rewiring.omega);
-                    
-                    local_omeg.accumulate(t, scenario.omega);
-                    local_omeg_rr.accumulate(t, scenario_random_rewiring.omega);
-                    local_omeg_nr.accumulate(t, scenario_no_rewiring.omega);
-                    local_omeg_12.accumulate(t, scenario.omega - scenario_random_rewiring.omega);
-                    local_omeg_23.accumulate(t, scenario_random_rewiring.omega - scenario_no_rewiring.omega);
-                    local_omeg_13.accumulate(t, scenario.omega - scenario_no_rewiring.omega);
-
-                    scenario.step_forward();
-                    scenario_random_rewiring.step_forward();
-                    scenario_no_rewiring.step_forward();
-                    if t % turbulence_interval == 0 {
-                        scenario.do_turbulence();
-                        scenario_random_rewiring.do_turbulence();
-                        scenario_no_rewiring.do_turbulence();
+                        scenario.step_forward();
+                        scenario_random_rewiring.step_forward();
+                        scenario_no_rewiring.step_forward();
+                        if t % turbulence_interval == 0 {
+                            scenario.do_turbulence();
+                            scenario_random_rewiring.do_turbulence();
+                            scenario_no_rewiring.do_turbulence();
+                        }
                     }
-                    pb_global.inc(1); // Increment the progress bar
-                }
-                pb_local.inc(1); // Increment the progress bar
-            }
-            
-            local_perf.finalize();
-            local_perf_rr.finalize();
-            local_perf_nr.finalize();
-            local_perf_12.finalize();
-            local_perf_23.finalize();
-            local_perf_13.finalize();
-            
-            local_clws.finalize();
-            local_clws_rr.finalize();
-            local_clws_nr.finalize();
-            local_clws_12.finalize();
-            local_clws_23.finalize();
-            local_clws_13.finalize();
-            
-            local_cent.finalize();
-            local_cent_rr.finalize();
-            local_cent_nr.finalize();
-            local_cent_12.finalize();
-            local_cent_23.finalize();
-            local_cent_13.finalize();
-            
-            local_tria.finalize();
-            local_tria_rr.finalize();
-            local_tria_nr.finalize();
-            local_tria_12.finalize();
-            local_tria_23.finalize();
-            local_tria_13.finalize();
-            
-            local_spva.finalize();
-            local_spva_rr.finalize();
-            local_spva_nr.finalize();
-            local_spva_12.finalize();
-            local_spva_23.finalize();
-            local_spva_13.finalize();
-            
-            local_effi.finalize();
-            local_effi_rr.finalize();
-            local_effi_nr.finalize();
-            local_effi_12.finalize();
-            local_effi_23.finalize();
-            local_effi_13.finalize();
-            
-            local_sigm.finalize();
-            local_sigm_rr.finalize();
-            local_sigm_nr.finalize();
-            local_sigm_12.finalize();
-            local_sigm_23.finalize();
-            local_sigm_13.finalize();
-            
-            local_omeg.finalize();
-            local_omeg_rr.finalize();
-            local_omeg_nr.finalize();
-            local_omeg_12.finalize();
-            local_omeg_23.finalize();
-            local_omeg_13.finalize();
-            
-            for t in 0..params::TIME {
-                let mut indices_t = indices.clone();
-                indices_t.push(t);
-                let ix_dyn = IxDyn(&indices_t);
-                self.r_perf_avg.lock().unwrap()[&ix_dyn] = local_perf.avg[t];
-                self.r_perf_std.lock().unwrap()[&ix_dyn] = local_perf.std[t];
-                self.r_perf_rr_avg.lock().unwrap()[&ix_dyn] = local_perf_rr.avg[t];
-                self.r_perf_rr_std.lock().unwrap()[&ix_dyn] = local_perf_rr.std[t];
-                self.r_perf_nr_avg.lock().unwrap()[&ix_dyn] = local_perf_nr.avg[t];
-                self.r_perf_nr_std.lock().unwrap()[&ix_dyn] = local_perf_nr.std[t];
-                self.r_perf_12_avg.lock().unwrap()[&ix_dyn] = local_perf_12.avg[t];
-                self.r_perf_12_std.lock().unwrap()[&ix_dyn] = local_perf_12.std[t];
-                self.r_perf_23_avg.lock().unwrap()[&ix_dyn] = local_perf_23.avg[t];
-                self.r_perf_23_std.lock().unwrap()[&ix_dyn] = local_perf_23.std[t];
-                self.r_perf_13_avg.lock().unwrap()[&ix_dyn] = local_perf_13.avg[t];
-                self.r_perf_13_std.lock().unwrap()[&ix_dyn] = local_perf_13.std[t];
-                
-                self.r_clws_avg.lock().unwrap()[&ix_dyn] = local_clws.avg[t];
-                self.r_clws_std.lock().unwrap()[&ix_dyn] = local_clws.std[t];
-                self.r_clws_rr_avg.lock().unwrap()[&ix_dyn] = local_clws_rr.avg[t];
-                self.r_clws_rr_std.lock().unwrap()[&ix_dyn] = local_clws_rr.std[t];
-                self.r_clws_nr_avg.lock().unwrap()[&ix_dyn] = local_clws_nr.avg[t];
-                self.r_clws_nr_std.lock().unwrap()[&ix_dyn] = local_clws_nr.std[t];
-                self.r_clws_12_avg.lock().unwrap()[&ix_dyn] = local_clws_12.avg[t];
-                self.r_clws_12_std.lock().unwrap()[&ix_dyn] = local_clws_12.std[t];
-                self.r_clws_23_avg.lock().unwrap()[&ix_dyn] = local_clws_23.avg[t];
-                self.r_clws_23_std.lock().unwrap()[&ix_dyn] = local_clws_23.std[t];
-                self.r_clws_13_avg.lock().unwrap()[&ix_dyn] = local_clws_13.avg[t];
-                self.r_clws_13_std.lock().unwrap()[&ix_dyn] = local_clws_13.std[t];
-                
-                self.r_cent_avg.lock().unwrap()[&ix_dyn] = local_cent.avg[t];
-                self.r_cent_std.lock().unwrap()[&ix_dyn] = local_cent.std[t];
-                self.r_cent_rr_avg.lock().unwrap()[&ix_dyn] = local_cent_rr.avg[t];
-                self.r_cent_rr_std.lock().unwrap()[&ix_dyn] = local_cent_rr.std[t];
-                self.r_cent_nr_avg.lock().unwrap()[&ix_dyn] = local_cent_nr.avg[t];
-                self.r_cent_nr_std.lock().unwrap()[&ix_dyn] = local_cent_nr.std[t];
-                self.r_cent_12_avg.lock().unwrap()[&ix_dyn] = local_cent_12.avg[t];
-                self.r_cent_12_std.lock().unwrap()[&ix_dyn] = local_cent_12.std[t];
-                self.r_cent_23_avg.lock().unwrap()[&ix_dyn] = local_cent_23.avg[t];
-                self.r_cent_23_std.lock().unwrap()[&ix_dyn] = local_cent_23.std[t];
-                self.r_cent_13_avg.lock().unwrap()[&ix_dyn] = local_cent_13.avg[t];
-                self.r_cent_13_std.lock().unwrap()[&ix_dyn] = local_cent_13.std[t];
-                
-                self.r_tria_avg.lock().unwrap()[&ix_dyn] = local_tria.avg[t];
-                self.r_tria_std.lock().unwrap()[&ix_dyn] = local_tria.std[t];
-                self.r_tria_rr_avg.lock().unwrap()[&ix_dyn] = local_tria_rr.avg[t];
-                self.r_tria_rr_std.lock().unwrap()[&ix_dyn] = local_tria_rr.std[t];
-                self.r_tria_nr_avg.lock().unwrap()[&ix_dyn] = local_tria_nr.avg[t];
-                self.r_tria_nr_std.lock().unwrap()[&ix_dyn] = local_tria_nr.std[t];
-                self.r_tria_12_avg.lock().unwrap()[&ix_dyn] = local_tria_12.avg[t];
-                self.r_tria_12_std.lock().unwrap()[&ix_dyn] = local_tria_12.std[t];
-                self.r_tria_23_avg.lock().unwrap()[&ix_dyn] = local_tria_23.avg[t];
-                self.r_tria_23_std.lock().unwrap()[&ix_dyn] = local_tria_23.std[t];
-                self.r_tria_13_avg.lock().unwrap()[&ix_dyn] = local_tria_13.avg[t];
-                self.r_tria_13_std.lock().unwrap()[&ix_dyn] = local_tria_13.std[t];
-                
-                self.r_spva_avg.lock().unwrap()[&ix_dyn] = local_spva.avg[t];
-                self.r_spva_std.lock().unwrap()[&ix_dyn] = local_spva.std[t];
-                self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] = local_spva_rr.avg[t];
-                self.r_spva_rr_std.lock().unwrap()[&ix_dyn] = local_spva_rr.std[t];
-                self.r_spva_nr_avg.lock().unwrap()[&ix_dyn] = local_spva_nr.avg[t];
-                self.r_spva_nr_std.lock().unwrap()[&ix_dyn] = local_spva_nr.std[t];
-                self.r_spva_12_avg.lock().unwrap()[&ix_dyn] = local_spva_12.avg[t];
-                self.r_spva_12_std.lock().unwrap()[&ix_dyn] = local_spva_12.std[t];
-                self.r_spva_23_avg.lock().unwrap()[&ix_dyn] = local_spva_23.avg[t];
-                self.r_spva_23_std.lock().unwrap()[&ix_dyn] = local_spva_23.std[t];
-                self.r_spva_13_avg.lock().unwrap()[&ix_dyn] = local_spva_13.avg[t];
-                self.r_spva_13_std.lock().unwrap()[&ix_dyn] = local_spva_13.std[t];
-                
-                self.r_effi_avg.lock().unwrap()[&ix_dyn] = local_effi.avg[t];
-                self.r_effi_std.lock().unwrap()[&ix_dyn] = local_effi.std[t];
-                self.r_effi_rr_avg.lock().unwrap()[&ix_dyn] = local_effi_rr.avg[t];
-                self.r_effi_rr_std.lock().unwrap()[&ix_dyn] = local_effi_rr.std[t];
-                self.r_effi_nr_avg.lock().unwrap()[&ix_dyn] = local_effi_nr.avg[t];
-                self.r_effi_nr_std.lock().unwrap()[&ix_dyn] = local_effi_nr.std[t];
-                self.r_effi_12_avg.lock().unwrap()[&ix_dyn] = local_effi_12.avg[t];
-                self.r_effi_12_std.lock().unwrap()[&ix_dyn] = local_effi_12.std[t];
-                self.r_effi_23_avg.lock().unwrap()[&ix_dyn] = local_effi_23.avg[t];
-                self.r_effi_23_std.lock().unwrap()[&ix_dyn] = local_effi_23.std[t];
-                self.r_effi_13_avg.lock().unwrap()[&ix_dyn] = local_effi_13.avg[t];
-                self.r_effi_13_std.lock().unwrap()[&ix_dyn] = local_effi_13.std[t];
-                
-                self.r_sigm_avg.lock().unwrap()[&ix_dyn] = local_sigm.avg[t];
-                self.r_sigm_std.lock().unwrap()[&ix_dyn] = local_sigm.std[t];
-                self.r_sigm_rr_avg.lock().unwrap()[&ix_dyn] = local_sigm_rr.avg[t];
-                self.r_sigm_rr_std.lock().unwrap()[&ix_dyn] = local_sigm_rr.std[t];
-                self.r_sigm_nr_avg.lock().unwrap()[&ix_dyn] = local_sigm_nr.avg[t];
-                self.r_sigm_nr_std.lock().unwrap()[&ix_dyn] = local_sigm_nr.std[t];
-                self.r_sigm_12_avg.lock().unwrap()[&ix_dyn] = local_sigm_12.avg[t];
-                self.r_sigm_12_std.lock().unwrap()[&ix_dyn] = local_sigm_12.std[t];
-                self.r_sigm_23_avg.lock().unwrap()[&ix_dyn] = local_sigm_23.avg[t];
-                self.r_sigm_23_std.lock().unwrap()[&ix_dyn] = local_sigm_23.std[t];
-                self.r_sigm_13_avg.lock().unwrap()[&ix_dyn] = local_sigm_13.avg[t];
-                self.r_sigm_13_std.lock().unwrap()[&ix_dyn] = local_sigm_13.std[t];
+                    pb_local.inc(1);
+                    pb_global.inc(1);
+            });
 
-                self.r_omeg_avg.lock().unwrap()[&ix_dyn] = local_omeg.avg[t];
-                self.r_omeg_std.lock().unwrap()[&ix_dyn] = local_omeg.std[t];
-                self.r_omeg_rr_avg.lock().unwrap()[&ix_dyn] = local_omeg_rr.avg[t];
-                self.r_omeg_rr_std.lock().unwrap()[&ix_dyn] = local_omeg_rr.std[t];
-                self.r_omeg_nr_avg.lock().unwrap()[&ix_dyn] = local_omeg_nr.avg[t];
-                self.r_omeg_nr_std.lock().unwrap()[&ix_dyn] = local_omeg_nr.std[t];
-                self.r_omeg_12_avg.lock().unwrap()[&ix_dyn] = local_omeg_12.avg[t];
-                self.r_omeg_12_std.lock().unwrap()[&ix_dyn] = local_omeg_12.std[t];
-                self.r_omeg_23_avg.lock().unwrap()[&ix_dyn] = local_omeg_23.avg[t];
-                self.r_omeg_23_std.lock().unwrap()[&ix_dyn] = local_omeg_23.std[t];
-                self.r_omeg_13_avg.lock().unwrap()[&ix_dyn] = local_omeg_13.avg[t];
-                self.r_omeg_13_std.lock().unwrap()[&ix_dyn] = local_omeg_13.std[t];
-            }
+            params::PARAMS_INDEX_COMBINATIONS.get().unwrap().iter().for_each(
+                |(
+                    i_social_dynamics, 
+                    i_span, 
+                    i_enforcement, 
+                    i_turbulence, 
+                    i_turnover)| {
+                        for t in 0..params::TIME {
+                            let ix_dyn = IxDyn(&vec![
+                                *i_social_dynamics,
+                                *i_span,
+                                *i_enforcement,
+                                *i_turbulence,
+                                *i_turnover,
+                                t
+                            ]);
+                            self.r_perf_avg.lock().unwrap()[&ix_dyn] += local_perf.avg[&ix_dyn];
+                            self.r_perf_std.lock().unwrap()[&ix_dyn] += local_perf.std[&ix_dyn];
+                            self.r_perf_rr_avg.lock().unwrap()[&ix_dyn] += local_perf_rr.avg[&ix_dyn];
+                            self.r_perf_rr_std.lock().unwrap()[&ix_dyn] += local_perf_rr.std[&ix_dyn];
+                            self.r_perf_nr_avg.lock().unwrap()[&ix_dyn] += local_perf_nr.avg[&ix_dyn];
+                            self.r_perf_nr_std.lock().unwrap()[&ix_dyn] += local_perf_nr.std[&ix_dyn];
+                            self.r_perf_12_avg.lock().unwrap()[&ix_dyn] += local_perf_12.avg[&ix_dyn];
+                            self.r_perf_12_std.lock().unwrap()[&ix_dyn] += local_perf_12.std[&ix_dyn];
+                            self.r_perf_23_avg.lock().unwrap()[&ix_dyn] += local_perf_23.avg[&ix_dyn];
+                            self.r_perf_23_std.lock().unwrap()[&ix_dyn] += local_perf_23.std[&ix_dyn];
+                            self.r_perf_13_avg.lock().unwrap()[&ix_dyn] += local_perf_13.avg[&ix_dyn];
+                            self.r_perf_13_std.lock().unwrap()[&ix_dyn] += local_perf_13.std[&ix_dyn];
+                            
+                            self.r_clws_avg.lock().unwrap()[&ix_dyn] += local_clws.avg[&ix_dyn];
+                            self.r_clws_std.lock().unwrap()[&ix_dyn] += local_clws.std[&ix_dyn];
+                            self.r_clws_rr_avg.lock().unwrap()[&ix_dyn] += local_clws_rr.avg[&ix_dyn];
+                            self.r_clws_rr_std.lock().unwrap()[&ix_dyn] += local_clws_rr.std[&ix_dyn];
+                            self.r_clws_nr_avg.lock().unwrap()[&ix_dyn] += local_clws_nr.avg[&ix_dyn];
+                            self.r_clws_nr_std.lock().unwrap()[&ix_dyn] += local_clws_nr.std[&ix_dyn];
+                            self.r_clws_12_avg.lock().unwrap()[&ix_dyn] += local_clws_12.avg[&ix_dyn];
+                            self.r_clws_12_std.lock().unwrap()[&ix_dyn] += local_clws_12.std[&ix_dyn];
+                            self.r_clws_23_avg.lock().unwrap()[&ix_dyn] += local_clws_23.avg[&ix_dyn];
+                            self.r_clws_23_std.lock().unwrap()[&ix_dyn] += local_clws_23.std[&ix_dyn];
+                            self.r_clws_13_avg.lock().unwrap()[&ix_dyn] += local_clws_13.avg[&ix_dyn];
+                            self.r_clws_13_std.lock().unwrap()[&ix_dyn] += local_clws_13.std[&ix_dyn];
+                            
+                            self.r_cent_avg.lock().unwrap()[&ix_dyn] += local_cent.avg[&ix_dyn];
+                            self.r_cent_std.lock().unwrap()[&ix_dyn] += local_cent.std[&ix_dyn];
+                            self.r_cent_rr_avg.lock().unwrap()[&ix_dyn] += local_cent_rr.avg[&ix_dyn];
+                            self.r_cent_rr_std.lock().unwrap()[&ix_dyn] += local_cent_rr.std[&ix_dyn];
+                            self.r_cent_nr_avg.lock().unwrap()[&ix_dyn] += local_cent_nr.avg[&ix_dyn];
+                            self.r_cent_nr_std.lock().unwrap()[&ix_dyn] += local_cent_nr.std[&ix_dyn];
+                            self.r_cent_12_avg.lock().unwrap()[&ix_dyn] += local_cent_12.avg[&ix_dyn];
+                            self.r_cent_12_std.lock().unwrap()[&ix_dyn] += local_cent_12.std[&ix_dyn];
+                            self.r_cent_23_avg.lock().unwrap()[&ix_dyn] += local_cent_23.avg[&ix_dyn];
+                            self.r_cent_23_std.lock().unwrap()[&ix_dyn] += local_cent_23.std[&ix_dyn];
+                            self.r_cent_13_avg.lock().unwrap()[&ix_dyn] += local_cent_13.avg[&ix_dyn];
+                            self.r_cent_13_std.lock().unwrap()[&ix_dyn] += local_cent_13.std[&ix_dyn];
+                            
+                            self.r_tria_avg.lock().unwrap()[&ix_dyn] += local_tria.avg[&ix_dyn];
+                            self.r_tria_std.lock().unwrap()[&ix_dyn] += local_tria.std[&ix_dyn];
+                            self.r_tria_rr_avg.lock().unwrap()[&ix_dyn] += local_tria_rr.avg[&ix_dyn];
+                            self.r_tria_rr_std.lock().unwrap()[&ix_dyn] += local_tria_rr.std[&ix_dyn];
+                            self.r_tria_nr_avg.lock().unwrap()[&ix_dyn] += local_tria_nr.avg[&ix_dyn];
+                            self.r_tria_nr_std.lock().unwrap()[&ix_dyn] += local_tria_nr.std[&ix_dyn];
+                            self.r_tria_12_avg.lock().unwrap()[&ix_dyn] += local_tria_12.avg[&ix_dyn];
+                            self.r_tria_12_std.lock().unwrap()[&ix_dyn] += local_tria_12.std[&ix_dyn];
+                            self.r_tria_23_avg.lock().unwrap()[&ix_dyn] += local_tria_23.avg[&ix_dyn];
+                            self.r_tria_23_std.lock().unwrap()[&ix_dyn] += local_tria_23.std[&ix_dyn];
+                            self.r_tria_13_avg.lock().unwrap()[&ix_dyn] += local_tria_13.avg[&ix_dyn];
+                            self.r_tria_13_std.lock().unwrap()[&ix_dyn] += local_tria_13.std[&ix_dyn];
+                            
+                            self.r_spva_avg.lock().unwrap()[&ix_dyn] += local_spva.avg[&ix_dyn];
+                            self.r_spva_std.lock().unwrap()[&ix_dyn] += local_spva.std[&ix_dyn];
+                            self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] += local_spva_rr.avg[&ix_dyn];
+                            self.r_spva_rr_std.lock().unwrap()[&ix_dyn] += local_spva_rr.std[&ix_dyn];
+                            self.r_spva_nr_avg.lock().unwrap()[&ix_dyn] += local_spva_nr.avg[&ix_dyn];
+                            self.r_spva_nr_std.lock().unwrap()[&ix_dyn] += local_spva_nr.std[&ix_dyn];
+                            self.r_spva_12_avg.lock().unwrap()[&ix_dyn] += local_spva_12.avg[&ix_dyn];
+                            self.r_spva_12_std.lock().unwrap()[&ix_dyn] += local_spva_12.std[&ix_dyn];
+                            self.r_spva_23_avg.lock().unwrap()[&ix_dyn] += local_spva_23.avg[&ix_dyn];
+                            self.r_spva_23_std.lock().unwrap()[&ix_dyn] += local_spva_23.std[&ix_dyn];
+                            self.r_spva_13_avg.lock().unwrap()[&ix_dyn] += local_spva_13.avg[&ix_dyn];
+                            self.r_spva_13_std.lock().unwrap()[&ix_dyn] += local_spva_13.std[&ix_dyn];
+                            
+                            self.r_effi_avg.lock().unwrap()[&ix_dyn] += local_effi.avg[&ix_dyn];
+                            self.r_effi_std.lock().unwrap()[&ix_dyn] += local_effi.std[&ix_dyn];
+                            self.r_effi_rr_avg.lock().unwrap()[&ix_dyn] += local_effi_rr.avg[&ix_dyn];
+                            self.r_effi_rr_std.lock().unwrap()[&ix_dyn] += local_effi_rr.std[&ix_dyn];
+                            self.r_effi_nr_avg.lock().unwrap()[&ix_dyn] += local_effi_nr.avg[&ix_dyn];
+                            self.r_effi_nr_std.lock().unwrap()[&ix_dyn] += local_effi_nr.std[&ix_dyn];
+                            self.r_effi_12_avg.lock().unwrap()[&ix_dyn] += local_effi_12.avg[&ix_dyn];
+                            self.r_effi_12_std.lock().unwrap()[&ix_dyn] += local_effi_12.std[&ix_dyn];
+                            self.r_effi_23_avg.lock().unwrap()[&ix_dyn] += local_effi_23.avg[&ix_dyn];
+                            self.r_effi_23_std.lock().unwrap()[&ix_dyn] += local_effi_23.std[&ix_dyn];
+                            self.r_effi_13_avg.lock().unwrap()[&ix_dyn] += local_effi_13.avg[&ix_dyn];
+                            self.r_effi_13_std.lock().unwrap()[&ix_dyn] += local_effi_13.std[&ix_dyn];
+                            
+                            self.r_sigm_avg.lock().unwrap()[&ix_dyn] += local_sigm.avg[&ix_dyn];
+                            self.r_sigm_std.lock().unwrap()[&ix_dyn] += local_sigm.std[&ix_dyn];
+                            self.r_sigm_rr_avg.lock().unwrap()[&ix_dyn] += local_sigm_rr.avg[&ix_dyn];
+                            self.r_sigm_rr_std.lock().unwrap()[&ix_dyn] += local_sigm_rr.std[&ix_dyn];
+                            self.r_sigm_nr_avg.lock().unwrap()[&ix_dyn] += local_sigm_nr.avg[&ix_dyn];
+                            self.r_sigm_nr_std.lock().unwrap()[&ix_dyn] += local_sigm_nr.std[&ix_dyn];
+                            self.r_sigm_12_avg.lock().unwrap()[&ix_dyn] += local_sigm_12.avg[&ix_dyn];
+                            self.r_sigm_12_std.lock().unwrap()[&ix_dyn] += local_sigm_12.std[&ix_dyn];
+                            self.r_sigm_23_avg.lock().unwrap()[&ix_dyn] += local_sigm_23.avg[&ix_dyn];
+                            self.r_sigm_23_std.lock().unwrap()[&ix_dyn] += local_sigm_23.std[&ix_dyn];
+                            self.r_sigm_13_avg.lock().unwrap()[&ix_dyn] += local_sigm_13.avg[&ix_dyn];
+                            self.r_sigm_13_std.lock().unwrap()[&ix_dyn] += local_sigm_13.std[&ix_dyn];
+            
+                            self.r_omeg_avg.lock().unwrap()[&ix_dyn] += local_omeg.avg[&ix_dyn];
+                            self.r_omeg_std.lock().unwrap()[&ix_dyn] += local_omeg.std[&ix_dyn];
+                            self.r_omeg_rr_avg.lock().unwrap()[&ix_dyn] += local_omeg_rr.avg[&ix_dyn];
+                            self.r_omeg_rr_std.lock().unwrap()[&ix_dyn] += local_omeg_rr.std[&ix_dyn];
+                            self.r_omeg_nr_avg.lock().unwrap()[&ix_dyn] += local_omeg_nr.avg[&ix_dyn];
+                            self.r_omeg_nr_std.lock().unwrap()[&ix_dyn] += local_omeg_nr.std[&ix_dyn];
+                            self.r_omeg_12_avg.lock().unwrap()[&ix_dyn] += local_omeg_12.avg[&ix_dyn];
+                            self.r_omeg_12_std.lock().unwrap()[&ix_dyn] += local_omeg_12.std[&ix_dyn];
+                            self.r_omeg_23_avg.lock().unwrap()[&ix_dyn] += local_omeg_23.avg[&ix_dyn];
+                            self.r_omeg_23_std.lock().unwrap()[&ix_dyn] += local_omeg_23.std[&ix_dyn];
+                            self.r_omeg_13_avg.lock().unwrap()[&ix_dyn] += local_omeg_13.avg[&ix_dyn];
+                            self.r_omeg_13_std.lock().unwrap()[&ix_dyn] += local_omeg_13.std[&ix_dyn];
+                        }
+                    }
+            );
             pb_local.finish_and_clear();
-            },
-        );
+        });
+        params::PARAMS_INDEX_COMBINATIONS.get().unwrap().iter().for_each(
+            |(
+                i_social_dynamics, 
+                i_span, 
+                i_enforcement, 
+                i_turbulence, 
+                i_turnover)| {
+                    for t in 0..params::TIME {
+                        let ix_dyn = IxDyn(&vec![
+                            *i_social_dynamics,
+                            *i_span,
+                            *i_enforcement,
+                            *i_turbulence,
+                            *i_turnover,
+                            t
+                        ]);
+                        self.r_perf_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_rr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_rr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_nr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_nr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_12_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_12_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_23_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_23_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_13_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_perf_13_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        
+                        self.r_clws_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_rr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_rr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_nr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_nr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_12_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_12_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_23_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_23_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_13_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_clws_13_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        
+                        self.r_cent_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_rr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_rr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_nr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_nr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_12_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_12_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_23_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_23_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_13_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_cent_13_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        
+                        self.r_tria_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_rr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_rr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_nr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_nr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_12_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_12_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_23_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_23_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_13_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_tria_13_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        
+                        self.r_spva_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_rr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_rr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_nr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_nr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_12_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_12_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_23_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_23_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_13_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_spva_13_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        
+                        self.r_effi_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_rr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_rr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_nr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_nr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_12_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_12_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_23_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_23_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_13_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_effi_13_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        
+                        self.r_sigm_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_rr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_rr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_nr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_nr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_12_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_12_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_23_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_23_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_13_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_sigm_13_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+        
+                        self.r_omeg_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_rr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_rr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_nr_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_nr_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_12_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_12_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_23_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_23_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_13_avg.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+                        self.r_omeg_13_std.lock().unwrap()[&ix_dyn] /= ITERATION as f64;
+
+                        }
+                    });
+
+        // CLEAN RESULTS HERE //
         pb_global.finish_with_message("Done!");
     }
 
@@ -640,37 +714,28 @@ impl ExperimentManager {
         
     }
     
- 
 }
+
 
 // Example struct for "Performance" metrics
 #[derive(Default)]
 struct OutcomeVariable {
-    avg: Vec<f64>,
-    std: Vec<f64>,
+    avg: ArrayD<f64>,
+    std: ArrayD<f64>,
 }
 
 // Methods to accumulate values
 impl OutcomeVariable {
     fn new() -> Self {
         Self {
-            avg: vec![0.0; params::TIME],
-            std: vec![0.0; params::TIME],
+            avg: ArrayD::zeros(IxDyn(&params::RESULT_SHAPE)),
+            std: ArrayD::zeros(IxDyn(&params::RESULT_SHAPE)),
         }
     }
 
     // Accumulate a single value at time t
-    fn accumulate(&mut self, t: usize, value: f64) {
-        self.avg[t] += value;
-        self.std[t] += value.powi(2);
-    }
-
-    // Finalize the metrics (divide by iteration, compute std)
-    fn finalize(&mut self) {
-        for (avg, std) in self.avg.iter_mut().zip(&mut self.std) {
-            *avg /= params::ITERATION as f64;
-            *std /= params::ITERATION as f64;
-            *std = (*std - avg.powi(2)).sqrt();
-        }
+    fn set(&mut self, ix_dyn:&Dim<IxDynImpl>, value: f64) {
+        self.avg[ix_dyn] = value;
+        self.std[ix_dyn] = value.powi(2);
     }
 }

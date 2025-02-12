@@ -2,15 +2,13 @@ pub mod params;
 pub mod scenario;
 pub mod network_analyzer;
 pub mod experiment_manager;
-pub mod experiment_manager_alt;
 pub mod hdf5_manager;
-pub mod hdf5_manager_alt;
 
 use std::fs;
 use std::path::Path;
 use std::thread::available_parallelism;
-use experiment_manager_alt::ExperimentManager;
-use hdf5_manager_alt::HDF5Manager;
+use experiment_manager::ExperimentManager;
+use hdf5_manager::HDF5Manager;
 use rayon::ThreadPoolBuilder;
 
 fn main() -> std::io::Result<()> {    
