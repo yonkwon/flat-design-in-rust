@@ -1,5 +1,5 @@
-use hdf5_metno::File;
-use hdf5_metno::dataset::Dataset;
+use hdf5::File;
+use hdf5::dataset::Dataset;
 use crate::{experiment_manager::ExperimentManager, params};
 
 pub struct HDF5Manager {
