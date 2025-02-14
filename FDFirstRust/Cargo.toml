@@ -10,7 +10,6 @@ rayon = "1.5" # Parallelism
 ndarray = "0.16.1"
 
 # I/O hdf5 (*.h5) file
-hdf5-metno-sys = {version = "0.10.1", features = ["static"]}
 hdf5-metno = "0.9.4"
 
 # Progress Bar

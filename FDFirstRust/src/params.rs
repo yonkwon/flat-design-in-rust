@@ -2,31 +2,34 @@ use std::env;
 use once_cell::sync::OnceCell;
 use once_cell::sync::Lazy;
 
-pub static MAX_THREAD:usize = 4;
+pub static MAX_THREAD:usize = 999;
 
 pub static PRINT_NETWORK_CSV: bool = true;
 
 pub static RUN_ID: &str = "DATT";
 pub static RUN_DESC: &str = "Standard";
 
-pub static GET_GRAPH: bool = false;
+pub static GET_GRAPH: bool = true;
 pub static GET_MAT: bool = true;
 
-pub static ITERATION: usize = 3000;
+pub static ITERATION: usize = 500;
 pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
-pub static TIME: usize = 201;
+pub static TIME: usize = 501;
 
 pub static INFORMAL_MAX_NUM: isize = 10;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
 pub static INFORMAL_REWIRING_PROP: f64 = 0.1;
 
-pub static N: usize = 100;
+pub static N: usize = 200;
 // 30 * 4 = 24 * 5 = 20 * 6 = 15 * 8 = 12 * 10 = 10 * 12
+// pub static M_OF_BUNDLE: usize = 20;
+// pub static M_IN_BUNDLE: usize = 3;
+// 100 * 1; 20 * 5; 10 * 10; 
 pub static M_OF_BUNDLE: usize = 20;
-pub static M_IN_BUNDLE: usize = 3;
+pub static M_IN_BUNDLE: usize = 5;
 
 pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 // pub static SPAN: [usize; 3] = [2, 5, 8];
@@ -36,20 +39,20 @@ pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 pub static ENFORCEMENT: [f64; 1] = [1.0];
 
 
-// pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
-// pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
-pub static TURBULENCE_RATE: [f64; 1] = [0.0];
-pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
+pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
+pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];
+// pub static TURBULENCE_RATE: [f64; 1] = [0.0];
+// pub static TURBULENCE_INTERVAL: [usize; 1] = [TIME];
 
-// pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
-pub static TURNOVER_RATE: [f64; 1] = [0.0];
+pub static TURNOVER_RATE: [f64; 3] = [0.0, 0.01, 0.1];
+// pub static TURNOVER_RATE: [f64; 1] = [0.0];
 
 pub static LENGTH_SPAN: usize = SPAN.len();
 pub static LENGTH_ENFORCEMENT: usize = ENFORCEMENT.len();
 pub static LENGTH_TURBULENCE: usize = TURBULENCE_RATE.len();
 pub static LENGTH_TURNOVER: usize = TURNOVER_RATE.len();
 
-pub static P_LEARNING: f64 = 0.2;
+pub static P_LEARNING: f64 = 0.3;
 
 //SECOND-ORDER PARAMETERS 
 pub static M: usize = M_OF_BUNDLE * M_IN_BUNDLE;
