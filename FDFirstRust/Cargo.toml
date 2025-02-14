@@ -10,7 +10,7 @@ rayon = "1.5" # Parallelism
 ndarray = "0.16.1"
 
 # I/O hdf5 (*.h5) file
-hdf5-metno = "0.9.4"
+hdf5 = { package = "hdf5-metno", version = "0.10.0" }
 
 # Progress Bar
 indicatif = {version = "0.17.9", features = ["rayon"]}
