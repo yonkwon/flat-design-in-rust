@@ -17,13 +17,13 @@ pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
-pub static TIME: usize = 501;
+pub static TIME: usize = 101;
 
-pub static INFORMAL_MAX_NUM: isize = 5;
+pub static INFORMAL_MAX_NUM: isize = 10;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
-pub static INFORMAL_REWIRING_PROP: f64 = 0.1;
+pub static INFORMAL_REWIRING_PROP: f64 = 0.02;
 
-pub static N: usize = 200;
+pub static N: usize = 250;
 // 30 * 4 = 24 * 5 = 20 * 6 = 15 * 8 = 12 * 10 = 10 * 12
 // pub static M_OF_BUNDLE: usize = 20;
 // pub static M_IN_BUNDLE: usize = 3;
@@ -37,7 +37,6 @@ pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 // pub static ENFORCEMENT: [f64; 4] = [0.0, 0.5, 0.8, 1.0];
 // pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];
 pub static ENFORCEMENT: [f64; 1] = [1.0];
-
 
 // pub static TURBULENCE_RATE: [f64; 3] = [0.0, 0.1, 0.1];
 // pub static TURBULENCE_INTERVAL: [usize; 3] = [TIME, 25, 100];

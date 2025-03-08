@@ -1,7 +1,7 @@
 [package]
-name = "test2"
-version = "0.1.0"
-edition = "2021"
+name = "flat"
+version = "1.0.0"
+edition = "2025"
 
 [dependencies]
 rand = "0.8.4"
