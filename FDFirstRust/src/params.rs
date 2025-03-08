@@ -17,13 +17,13 @@ pub static LINK_LEVEL: bool = false;
 pub static LIMIT_LEVEL: bool = false;
 pub static P_ADDITION: f64 = 0.0;
 
-pub static TIME: usize = 101;
+pub static TIME: usize = 501;
 
-pub static INFORMAL_MAX_NUM: isize = 10;
+pub static INFORMAL_MAX_NUM: isize = 5;
 pub static INFORMAL_INITIAL_PROP: f64 = 0.5;
-pub static INFORMAL_REWIRING_PROP: f64 = 0.02;
+pub static INFORMAL_REWIRING_PROP: f64 = 0.1;
 
-pub static N: usize = 250;
+pub static N: usize = 200;
 // 30 * 4 = 24 * 5 = 20 * 6 = 15 * 8 = 12 * 10 = 10 * 12
 // pub static M_OF_BUNDLE: usize = 20;
 // pub static M_IN_BUNDLE: usize = 3;

@@ -7,9 +7,8 @@ editor: visual
 # Setup & Data Import
 
 ## File Path and Library Setup
-
-```{r, include=FALSE}
-# rm(list = ls()) # Cleaning R environment
+```{r setup, include=FALSE}
+rm(list = ls()) # Cleaning R environment
 setwd(dirname(rstudioapi::getSourceEditorContext()$path)) # Set SRC DIR as WD
 file <- file.choose(new = T)
 if (!require("BiocManager", quietly = TRUE)) {
@@ -41,7 +40,6 @@ tick_label_size <- 8
 # Line Plots
 
 ## Figure 3. Relationship Between Span of Control and Organizational Learning Effectiveness
-
 ```{r fig}
 # label_size <- 12
 # tick_label_size <- 10
@@ -248,7 +246,6 @@ ggsave(
 ```
 
 ##Figure 4. Decomposition of Social Dynamics’ Effects on Long-term Organizational Learning
-
 ```{r fig}
 # label_size <- 12
 # tick_label_size <- 10
@@ -268,7 +265,7 @@ set_fig_turbulence <- 1
 set_fig_turnover <- 1
 
 set_fig_t <- data$para_time
-# set_fig_t <- 100
+# set_fig_t <- 200
 
 x_label <- expression("Span of Control (S)")
 x_tick_label <- data$para_v_span
@@ -366,11 +363,13 @@ ggsave(
   dpi = fig_dpi
 )
 
-df_fig$diff <- df_fig$outcome1 - df_fig$outcome2
+df_fig[8, ]$outcome - df_fig[14, ]$outcome
+df_fig[15, ]$outcome - df_fig[21, ]$outcome
+df_fig[29, ]$outcome - df_fig[35, ]$outcome
+df_fig[36, ]$outcome - df_fig[42, ]$outcome
 ```
 
 ## Figure 6. Structural Features of Emerging Interaction Patterns
-
 ```{r fig}
 set_fig_width <- 6.5
 set_fig_height <- 3.5
@@ -613,7 +612,6 @@ ggsave(
 # Network Graph
 
 ## Network Setup
-
 ```{r netSet}
 # Libraries for network graphs
 library(igraph)
@@ -633,9 +631,9 @@ fig_dpi <- 600
 label_size <- 10
 tick_label_size <- 8
 
-net_width <- 2
-net_height <- 2
-node_size <- .1
+net_width <- 1.75
+net_height <- 1.75
+node_size <- 1
 node_stroke <- .1
 edge_width <- .1
 # net_width <- 4
@@ -647,8 +645,7 @@ edge_width <- .1
 edge_alpha <- .75
 ```
 
-## Network Grapaher
-
+## Network Grpaher
 ```{r net}
 files2print <- function(list_file) {
   for (file in list_file) {
@@ -718,7 +715,7 @@ files2print <- function(list_file) {
         data = triad_position,
         aes(x = x, y = y, group = triangle_id),
         fill = "#E81727",
-        alpha = .2
+        alpha = .1
       )
     }
     pp <- pp +
@@ -728,15 +725,14 @@ files2print <- function(list_file) {
       geom_edge_link(
         aes(
           color = E(net)$in_triad,
-          alpha = E(net)$in_triad,
           width = E(net)$in_triad,
           linetype = net_edge$is_enforced
         ),
         # color = 'black',
         # width = edge_width,
+        alpha = edge_alpha
       ) +
       scale_edge_color_manual(breaks = c(TRUE, FALSE), values = c("#E81727", "black")) +
-      scale_edge_alpha_manual(breaks = c(TRUE, FALSE), values = c(.3, .3)) +
       scale_edge_width_manual(breaks = c(TRUE, FALSE), values = c(edge_width * 1.5, edge_width)) +
       scale_edge_linetype_manual(breaks = c("true", "false"), values = c("solid", "dashed")) +
       geom_node_point(
@@ -774,7 +770,6 @@ files2print(choose.files())
 ```
 
 ## Network Metric
-
 ```{r}
 num_edges <- data$para_informal_init_n + data$para_n - 1
 p <- num_edges / (data$para_n * (data$para_n - 1) / 2)
@@ -824,14 +819,11 @@ for (file_net in list_file_net) {
 
   net_metric <- rbind(net_metric, df_next)
 }
-
-net_metric
 ```
 
 # Archive
 
 ## Simple Relationship
-
 ```{r fig}
 label_size <- 10
 tick_label_size <- 8
@@ -1003,7 +995,6 @@ ggsave(
 ```
 
 ## Longitudinal Relationship
-
 ```{r fig}
 set_fig_width <- 6.5
 set_fig_height <- 4
@@ -1146,8 +1137,8 @@ ggsave(
 )
 ```
 
-## Demonstration of Small worldness (Outcome panels)
 
+## Demonstration of Small worldness (Outcome panels)
 ```{r fig}
 set_fig_width <- 6
 set_fig_height <- 4
@@ -1357,8 +1348,8 @@ ggsave(
 )
 ```
 
-## Small World Q and Omega Prime
 
+## Small World Q and Omega Prime
 ```{r fig}
 set_fig_width <- 6
 set_fig_height <- 4
