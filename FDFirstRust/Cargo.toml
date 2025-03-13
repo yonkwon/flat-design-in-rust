@@ -1,20 +1,20 @@
 [package]
 name = "flat"
 version = "1.0.0"
-edition = "2025"
+edition = "2024"
 
 [dependencies]
-rand = "0.8.4"
-once_cell = "1.20.2"
-rayon = "1.5" # Parallelism
+rand = "0.9.0"
+once_cell = "1.21.0"
+rayon = "1.10.0" # Parallelism
 ndarray = "0.16.1"
 
 # I/O hdf5 (*.h5) file
-hdf5 = { package = "hdf5-metno", version = "0.10.0" }
+hdf5 = { package = "hdf5-metno", version = "0.10.1" }
 
 # Progress Bar
-indicatif = {version = "0.17.9", features = ["rayon"]}
-chrono = "0.4.39"
+indicatif = {version = "0.17.11", features = ["rayon"]}
+chrono = "0.4.40"
 
 [profile.dev]
 opt-level = 3

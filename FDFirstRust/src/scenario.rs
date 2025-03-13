@@ -1,5 +1,5 @@
 use rand::seq::SliceRandom;
-use rand::{thread_rng, Rng};
+use rand::{rng, Rng};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::{cmp, usize};
@@ -78,7 +78,7 @@ impl Scenario {
     ) -> Self {
         let is_stale = false;
         let tic =  SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize;
-        let rng = thread_rng();
+        let rng = rng();
         let reality = vec![vec![false; params::M_IN_BUNDLE]; params::M_OF_BUNDLE];
         let belief_of = vec![vec![vec![false; params::M_IN_BUNDLE]; params::M_OF_BUNDLE]; params::N];
         let performance_usize = vec![0; params::N];
@@ -271,7 +271,7 @@ impl Scenario {
         for focal in 0..params::N {
             for target in focal..params::N {
                 if self.network[focal][target] {
-                    if self.rng.gen::<f64>() < self.enforcement {
+                    if self.rng.random::<f64>() < self.enforcement {
                         // Enforced
                         self.network_formal[focal][target] = true;
                         self.network_formal[target][focal] = true;
@@ -291,7 +291,7 @@ impl Scenario {
         // Additional links
         let mut num_addition_left:usize = params::NUM_ADDITION;
         if num_addition_left > 0 {
-            self.iterator_dyad.shuffle(&mut thread_rng());
+            self.iterator_dyad.shuffle(&mut rng());
             'outer: loop {
                 for &(focal, target) in &self.iterator_dyad {
                     if !self.network[focal][target]
@@ -301,7 +301,7 @@ impl Scenario {
                     {
                         self.network[focal][target] = true;
                         self.network[target][focal] = true;
-                        if self.rng.gen::<f64>() < self.enforcement {
+                        if self.rng.random::<f64>() < self.enforcement {
                             // Enforced
                             self.network_formal[focal][target] = true;
                             self.network_formal[target][focal] = true;
@@ -344,9 +344,9 @@ impl Scenario {
     fn initialize_entity(&mut self) {
         for bundle in 0..params::M_OF_BUNDLE {
             for element in 0..params::M_IN_BUNDLE{
-                self.reality[bundle][element] = self.rng.gen::<bool>();
+                self.reality[bundle][element] = self.rng.random::<bool>();
                 for focal in 0..params::N {
-                    self.belief_of[focal][bundle][element] = self.rng.gen::<bool>();
+                    self.belief_of[focal][bundle][element] = self.rng.random::<bool>();
                 }
             }
         }
@@ -529,7 +529,7 @@ impl Scenario {
                 self.iterator_dyad.shuffle(&mut self.rng);
             }
             // Choose
-            let marker = self.rng.gen::<f64>();
+            let marker = self.rng.random::<f64>();
             let mut probability_cum = 0.0;
             for (d, (focal, target)) in self.iterator_dyad.iter().enumerate() {
                 if probability[d] != 0.0 {
@@ -573,7 +573,7 @@ impl Scenario {
                 probability_denominator = 1.0;
                 self.iterator_dyad.shuffle(&mut self.rng);
             }
-            let marker = self.rng.gen::<f64>();
+            let marker = self.rng.random::<f64>();
             let mut probability_cum = 0.0;
             for (d, (focal, target)) in self.iterator_dyad.iter().enumerate() {
                 if probability[d] != 0.0 {
@@ -669,7 +669,7 @@ impl Scenario {
                     if (count > 0 && belief) || (count < 0 && !belief) || count == 0 {
                         continue;
                     }
-                    if self.rng.gen::<f64>() < params::P_LEARNING {
+                    if self.rng.random::<f64>() < params::P_LEARNING {
                         beliefs[element] = !belief;
                     }
                 }
@@ -746,10 +746,10 @@ impl Scenario {
     pub fn do_turnover(&mut self) {
         self.is_stale = false;
         for focal in 0..params::N {
-            if self.rng.gen::<f64>() < self.turnover_rate {
+            if self.rng.random::<f64>() < self.turnover_rate {
                 for bundle in 0..params::M_OF_BUNDLE {
                     for element in 0..params::M_IN_BUNDLE{
-                        self.belief_of[focal][bundle][element] = self.rng.gen::<bool>();
+                        self.belief_of[focal][bundle][element] = self.rng.random::<bool>();
                     }
                 }
                 self.set_performance_of(focal);
@@ -762,7 +762,7 @@ impl Scenario {
         self.is_stale = false;
         for bundle in 0..params::M_OF_BUNDLE {
             for element in 0..params::M_IN_BUNDLE{
-                if self.rng.gen::<f64>() < self.turbulence_rate {
+                if self.rng.random::<f64>() < self.turbulence_rate {
                     self.reality[bundle][element] = !self.reality[bundle][element];
                 }
             }

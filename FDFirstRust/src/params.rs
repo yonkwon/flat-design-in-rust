@@ -4,13 +4,12 @@ use once_cell::sync::Lazy;
 
 pub static MAX_THREAD:usize = 999;
 
-pub static PRINT_NETWORK_CSV: bool = true;
-
 pub static RUN_ID: &str = "DATT";
 pub static RUN_DESC: &str = "";
 
 pub static GET_GRAPH: bool = true;
-pub static GET_MAT: bool = true;
+pub static GET_GRAPH_INIT: bool = false;
+pub static GET_MAT: bool = false;
 
 pub static ITERATION: usize = 10_000;
 pub static LINK_LEVEL: bool = false;
@@ -31,8 +30,9 @@ pub static N: usize = 250;
 pub static M_OF_BUNDLE: usize = 20;
 pub static M_IN_BUNDLE: usize = 5;
 
-pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
+// pub static SPAN: [usize; 7] = [2, 3, 4, 5, 6, 7, 8];
 // pub static SPAN: [usize; 3] = [2, 5, 8];
+pub static SPAN: [usize; 2] = [2, 8];
 
 // pub static ENFORCEMENT: [f64; 4] = [0.0, 0.5, 0.8, 1.0];
 // pub static ENFORCEMENT: [f64; 2] = [0.0, 1.0];

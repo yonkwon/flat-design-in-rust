@@ -3,7 +3,7 @@ use ndarray::{ArrayD, Dim, IxDyn, IxDynImpl};
 use std::sync::{Arc, Mutex};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use chrono::Local;
-use crate::params::{self, ITERATION};
+use crate::params::{self, GET_GRAPH_INIT, ITERATION};
 use crate::scenario::Scenario;
 
 /// Manages the experiment, including running the experiment and processing results.
@@ -689,9 +689,12 @@ impl ExperimentManager {
     
                     let file_name_network_csv = format!("{}s{}e{}ptb{}itb{}ptn{}.csv", if *i_social_dynamics==0 {"NetCl"} else {"PrfAt"}, span, enforcement, turbulence_rate, turbulence_interval, turnover_rate);
                     let path_network_csv = (params::PARAM_STRING).clone();
-                    scenario.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "sc", &file_name_network_csv).as_str());
-                    scenario_random_rewiring.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "rr", &file_name_network_csv).as_str());
-                    scenario_no_rewiring.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "nr", &file_name_network_csv).as_str());
+
+                    if GET_GRAPH_INIT {
+                        scenario.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "sc", &file_name_network_csv).as_str());
+                        scenario_random_rewiring.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "rr", &file_name_network_csv).as_str());
+                        scenario_no_rewiring.export_network_csv(format!("{}/{}_{}_t0", &path_network_csv, "nr", &file_name_network_csv).as_str());
+                    }
                     
                     for t in 0..params::TIME {
                         scenario.step_forward();
