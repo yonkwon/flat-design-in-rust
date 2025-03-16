@@ -610,6 +610,145 @@ ggsave(
 )
 ```
 
+## Figure 9. Longitudinal Pattern of Organizational Learning Effectiveness with External Shocks
+
+```{r fig}
+set_fig_width <- 6.5
+set_fig_height <- 7.5
+set_fig_ylim <- c(-.1, .9)
+
+set_fig_t_end <- data$para_time
+
+set_fig_mech <- 1:data$para_l_mech
+set_fig_span <- c(1, data$para_l_span)
+set_fig_enforcement <- data$para_l_enfo
+set_fig_turbulence <- 1:data$para_l_turb
+
+set_fig_t <- 1:set_fig_t_end
+x_label <- expression(Time ~ Period ~ (italic(t)))
+
+y_label <- "Relative Benefit Tall (S=2) v. Flat (S=8) Organizations"
+y_value_diff <- aperm(data$r_perf_avg[,,,,set_fig_span[1],] - data$r_perf_avg[,,,,set_fig_span[2],])
+
+label_mech <- c(
+  "Network Closure",
+  "Preferential Attachment"
+)
+label_mech <- factor(
+  label_mech,
+  levels = label_mech
+)
+
+label_turb <- c(
+  "Small Frequent Shock",
+  "Small Infrequent Shock",
+  "Large Frequent Shock",
+  "Large Infrequent Shock"
+)
+label_turb <- factor(
+  label_turb,
+  levels = label_turb
+)
+
+label_sign <- c(
+  "Relative Benefit of Tall Organizations",
+  "Relative Benefit of Flat Organizations"
+)
+label_sign <- factor(
+  label_sign,
+  levels = label_sign
+)
+
+df_fig <- data.frame()
+for (mech in set_fig_mech) {
+  for (turb in set_fig_turbulence) {
+    df_next <- data.frame(
+      mechanism = label_mech[mech],
+      turb = label_turb[turb],
+      time = set_fig_t,
+      outcome = y_value_diff[mech, turb, set_fig_t]
+    )
+    df_fig <- rbind(df_fig, df_next)
+  }
+}
+df_fig$is_pos <- df_fig$outcome >= 0 
+df_fig <- df_fig %>% 
+  mutate(outcome_pos = ifelse(outcome >= 0, outcome, NA),
+         outcome_neg = ifelse(outcome <= 0, outcome, NA))
+
+df_fig_appendix <- df_fig %>%
+  group_by(turb, mechanism) %>% # all variables used in facet_grid/facet_wrap
+  summarize(
+    y_min = min(outcome),
+    y_max = max(outcome),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    y_range = y_max - y_min,
+    # 2% extra space at top and bottom:
+    y_min_adj = y_min - .1 * y_range,
+    y_max_adj = y_max + .15 * y_range
+  )
+df_fig_appendix$panel_label <- paste0("(", LETTERS[1:nrow(df_fig_appendix)], ")")
+
+axes <- aes(
+  # fill = is_pos,
+  # color = is_pos,
+  x = time,
+  y = outcome
+)
+
+df_fig$time <- df_fig$time - 1
+
+fig <- ggplot(data = df_fig, mapping = axes) +
+  ggh4x::facet_grid2(
+    turb ~ mechanism,
+    switch = "y"
+  ) +
+  ggh4x::stat_difference(aes(ymin = 0, ymax = outcome), levels = label_sign) +
+  geom_hline(yintercept = 0, color = "black", size = .25, linetype = "dashed") +
+  geom_line(alpha = 1, size = .25, color = 'black') +
+  geom_text(data = df_fig_appendix, aes(label = panel_label), x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, inherit.aes = F) +
+  scale_color_manual(breaks = label_sign, values = c("#00a087ff", "#dc0000ff")) +
+  scale_fill_manual(breaks = label_sign, values = c("#00a087ff", "#dc0000ff")) +
+  scale_x_continuous(expand = c(0, .02)) +
+  # scale_y_continuous(expand = c(0, .02)) +
+  labs(x = x_label, y = y_label) +
+  theme_bw() +
+  theme(
+    text = element_text( # family = windowsFonts()$serif,
+      size = label_size, color = "black"
+    ),
+    axis.title.x = element_text(size = label_size, color = "black"),
+    axis.title.y = element_blank(),
+    axis.text = element_text(size = tick_label_size, color = "black"),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text = element_text(size = label_size * .9, color = "black"),
+    panel.spacing = unit(1, "lines"),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+fig
+ggsave(
+  paste0(
+    fig_id,
+    "_",
+    "fig9_",
+    y_label,
+    "t",
+    set_fig_t_end,
+    ".png"
+  ),
+  plot = fig,
+  units = "in",
+  width = set_fig_width,
+  height = set_fig_height,
+  dpi = fig_dpi
+)
+```
+
 # Network Graph
 
 ## Network Setup
@@ -1013,7 +1152,7 @@ set_fig_t_end <- data$para_time
 
 set_fig_span <- c(1, data$para_l_span)
 set_fig_enforcement <- data$para_l_enfo
-set_fig_turbulence <- 1
+set_fig_turbulence <- 3
 set_fig_turnover <- 1
 
 set_fig_t <- 1:set_fig_t_end
